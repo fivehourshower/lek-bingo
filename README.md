@@ -2,7 +2,7 @@
 
 A collaborative bingo room. Single Node process: serves the static frontend and
 relays game state over a WebSocket. State is held in memory and persisted to a
-JSON file on every change. Designed to drop onto a Digital Ocean droplet (or any
+SQLite database on every change. Designed to drop onto a Digital Ocean droplet (or any
 Docker host) and stay up.
 
 ## Running locally
@@ -20,7 +20,8 @@ Environment variables (all optional):
 | --- | --- | --- |
 | `PORT` | `3000` | HTTP + WS port |
 | `ADMIN_PASSWORD` | `nanohope` | Password to unlock the admin panel |
-| `STATE_FILE` | `./data/state.json` | Where in-memory state is dumped on every change |
+| `STATE_DB_FILE` | `./data/state.sqlite` | Where in-memory state is persisted on every change |
+| `STATE_FILE` | `./data/state.json` | Optional legacy JSON source used once for migration into SQLite |
 | `WORDS_FILE` | `./bingo_words.json` | The word list. Read on boot; rewritten when admin saves via UI |
 
 ## Running with Docker
@@ -78,7 +79,7 @@ Two ways:
   All actions are simple methods on a `state` object; after each one the server
   broadcasts the full state to every connected socket. Presence is derived from
   the set of open WS connections, not stored.
-- **`state.js`** — actions + JSON-file persistence (debounced 250ms).
+- **`state.js`** — actions + SQLite persistence (debounced 250ms).
 - **`public/`** — vanilla React app served as-is, transpiled in the browser via
   Babel Standalone. No build step. Same components as the design prototype; only
   `store.jsx` differs (WebSocket-backed instead of localStorage).
@@ -87,9 +88,7 @@ Two ways:
 
 - Single room. If you want multiple concurrent games, run multiple containers on
   different ports/subdomains.
-- In-memory + JSON snapshot persistence. Crashes mid-write are safe (atomic
-  rename isn't used; if you want belt-and-braces, swap `fs.writeFileSync` for a
-  temp-file + rename).
+- In-memory + SQLite snapshot persistence.
 - No rate-limiting on WS messages. For a public-internet deployment behind a
   reverse proxy, the proxy can shoulder that.
 - The admin password is the only auth. Don't reuse it with anything sensitive.

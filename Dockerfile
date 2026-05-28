@@ -12,7 +12,7 @@ COPY . .
 
 # Where state and the editable word list / background live
 RUN mkdir -p /app/data
-ENV STATE_FILE=/app/data/state.json
+ENV STATE_DB_FILE=/app/data/state.sqlite
 ENV WORDS_FILE=/app/bingo_words.json
 ENV PORT=3000
 

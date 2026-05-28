@@ -1,12 +1,14 @@
-// state.js — server-side single-room state with JSON file persistence.
+// state.js — server-side single-room state with SQLite persistence.
 //
 // All actions go through actions.* — they mutate state, persist, and return
 // the new state. The server is responsible for broadcasting after each action.
 
 const fs = require('fs');
 const path = require('path');
+const Database = require('better-sqlite3');
 
-const STATE_FILE = process.env.STATE_FILE || path.join(__dirname, 'data', 'state.json');
+const STATE_DB_FILE = process.env.STATE_DB_FILE || path.join(__dirname, 'data', 'state.sqlite');
+const LEGACY_STATE_FILE = process.env.STATE_FILE || path.join(__dirname, 'data', 'state.json');
 const WORDS_FILE = process.env.WORDS_FILE || path.join(__dirname, 'bingo_words.json');
 
 const DEFAULT_TITLE = 'Lek finals #10 bingo';
@@ -88,11 +90,66 @@ function makeBoard(state) {
 
 // ---- persistence ----
 let state;
+let db;
+let getStateRowStmt;
+let upsertStateStmt;
+
+function initDb() {
+  if (db) return;
+  fs.mkdirSync(path.dirname(STATE_DB_FILE), { recursive: true });
+  db = new Database(STATE_DB_FILE);
+  db.pragma('journal_mode = WAL');
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS app_state (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at INTEGER NOT NULL
+    )
+  `);
+  getStateRowStmt = db.prepare('SELECT value FROM app_state WHERE key = ?');
+  upsertStateStmt = db.prepare(`
+    INSERT INTO app_state (key, value, updated_at)
+    VALUES (?, ?, ?)
+    ON CONFLICT(key) DO UPDATE SET
+      value = excluded.value,
+      updated_at = excluded.updated_at
+  `);
+}
+
+function loadLegacyStateFromDisk() {
+  try {
+    const raw = fs.readFileSync(LEGACY_STATE_FILE, 'utf8');
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+function persistNow(nextState) {
+  try {
+    initDb();
+    upsertStateStmt.run('state', JSON.stringify(nextState), Date.now());
+  } catch (e) {
+    console.warn('Persist failed:', e.message);
+  }
+}
 
 function loadState() {
   try {
-    const raw = fs.readFileSync(STATE_FILE, 'utf8');
-    return JSON.parse(raw);
+    initDb();
+    const row = getStateRowStmt.get('state');
+    if (row && row.value) {
+      return JSON.parse(row.value);
+    }
+
+    // One-time migration path for existing installs that still have state.json.
+    const legacy = loadLegacyStateFromDisk();
+    if (legacy) {
+      persistNow(legacy);
+      return legacy;
+    }
+
+    return null;
   } catch (e) {
     return null;
   }
@@ -103,16 +160,12 @@ function persist() {
   if (_persistTimer) return;
   _persistTimer = setTimeout(() => {
     _persistTimer = null;
-    try {
-      fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
-      fs.writeFileSync(STATE_FILE, JSON.stringify(state));
-    } catch (e) {
-      console.warn('Persist failed:', e.message);
-    }
+    persistNow(state);
   }, 250);
 }
 
 function init() {
+  initDb();
   state = loadState() || emptyState();
   // Always overwrite the word pool from disk on boot (so admins editing the
   // mounted JSON outside the UI take effect on restart).
