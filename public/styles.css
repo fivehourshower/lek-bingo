@@ -1,0 +1,874 @@
+/* ============================================================
+   Core layout & components — theme-agnostic, uses CSS vars from themes.css
+   ============================================================ */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--bg-page);
+}
+
+body {
+  background-image: var(--page-bg-image, none);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  position: relative;
+}
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  background: var(--bg-overlay);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ============ Typography ============ */
+.h-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0;
+  text-wrap: balance;
+}
+.h-mono { font-family: var(--font-mono); }
+.h-soft { color: var(--ink-soft); }
+.h-faint { color: var(--ink-faint); }
+
+/* ============ Panels ============ */
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 14px;
+  box-shadow: var(--panel-shadow);
+  position: relative;
+}
+.panel-pad { padding: 24px; }
+
+/* Imperial decoration: ornamental corners */
+[data-theme="imperial"] .panel.ornate {
+  border-radius: 6px;
+  border-width: 2px;
+}
+[data-theme="imperial"] .panel.ornate::before,
+[data-theme="imperial"] .panel.ornate::after {
+  content: "";
+  position: absolute;
+  width: 28px; height: 28px;
+  border: 2px solid var(--accent-strong);
+  pointer-events: none;
+}
+[data-theme="imperial"] .panel.ornate::before {
+  top: -8px; left: -8px;
+  border-right: none; border-bottom: none;
+}
+[data-theme="imperial"] .panel.ornate::after {
+  bottom: -8px; right: -8px;
+  border-left: none; border-top: none;
+}
+
+/* Stream: glow ring on hover for interactive panels */
+[data-theme="stream"] .panel {
+  background: linear-gradient(180deg, var(--panel-bg) 0%, var(--panel-bg-2) 100%);
+}
+
+/* ============ Buttons ============ */
+.btn {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid var(--panel-edge);
+  background: var(--panel-bg-2);
+  color: var(--ink);
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform .15s var(--ease), background .15s var(--ease), box-shadow .15s var(--ease);
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent-strong);
+  color: var(--accent-on);
+  box-shadow: 0 4px 0 var(--accent-strong);
+}
+.btn-primary:hover { background: var(--accent-strong); box-shadow: 0 2px 0 var(--accent-strong); }
+.btn-ghost {
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.95);
+}
+.btn-ghost:hover { background: rgba(0,0,0,0.6); }
+/* Inside light panels, ghost picks up the panel tone instead of staying see-through */
+.panel .btn-ghost {
+  background: var(--panel-bg-2);
+  color: var(--ink-soft);
+  border-color: var(--panel-edge-soft);
+  backdrop-filter: none;
+}
+.panel .btn-ghost:hover { background: var(--panel-bg); }
+.btn-danger {
+  background: var(--bad);
+  border-color: var(--bad);
+  color: white;
+}
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-xs { padding: 4px 8px; font-size: 11px; }
+
+/* ============ Inputs ============ */
+.input {
+  font-family: var(--font-body);
+  font-size: 16px;
+  background: var(--cell-bg);
+  border: 1px solid var(--panel-edge);
+  color: var(--ink);
+  padding: 12px 14px;
+  border-radius: 8px;
+  width: 100%;
+}
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
+}
+.input.input-lg { font-size: 22px; padding: 16px 18px; font-family: var(--font-display); letter-spacing: .02em; }
+.textarea {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 240px;
+  resize: vertical;
+}
+
+/* ============ Top bar ============ */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 28px;
+  gap: 20px;
+  position: relative;
+  z-index: 5;
+}
+.topbar-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: white;
+  text-shadow: 0 2px 16px rgba(0,0,0,.6);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.topbar-title .crest {
+  width: 36px; height: 36px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 18px;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.15);
+}
+.topbar-actions { display: flex; gap: 10px; }
+
+/* ============ Layout shell ============ */
+.shell {
+  flex: 1;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: 20px;
+  padding: 0 28px 20px;
+  min-height: 0;
+}
+.shell-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+}
+
+/* ============ Bingo board ============ */
+.board {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--board-cell-gap);
+  padding: 14px;
+  background: var(--panel-bg);
+  border: 2px solid var(--panel-edge);
+  border-radius: var(--board-radius);
+  box-shadow: var(--panel-shadow);
+  width: 100%;
+  max-width: 560px;
+  aspect-ratio: 1;
+  position: relative;
+}
+.board-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 0 4px;
+}
+.board-header .label {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.board-letters {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--board-cell-gap);
+  padding: 0 14px;
+  margin-bottom: -8px;
+}
+.board-letters span {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 28px;
+  text-align: center;
+  color: var(--accent);
+  text-shadow: 0 2px 0 rgba(0,0,0,.15);
+}
+
+/* Cells */
+.cell {
+  aspect-ratio: 1;
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-edge);
+  border-radius: 6px;
+  padding: 6px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.18;
+  color: var(--cell-ink);
+  cursor: pointer;
+  user-select: none;
+  transition: transform .12s var(--ease), background .15s var(--ease);
+  text-wrap: balance;
+  hyphens: auto;
+  word-break: break-word;
+  position: relative;
+  z-index: 1;
+}
+.cell > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  width: 100%;
+  text-align: center;
+}
+.cell:hover { transform: scale(1.03); z-index: 20; }
+
+/* Hover tooltip for the full word — escapes the cell so long text can show
+   in full above the grid. Uses ::before because ::after is used for badges. */
+.cell[data-word]::before {
+  content: attr(data-word);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  background: rgba(15, 12, 8, 0.96);
+  color: #fff;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 240px;
+  text-align: center;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .15s var(--ease) .35s, transform .15s var(--ease) .35s, visibility 0s linear .5s;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45);
+}
+.cell[data-word]:hover::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: .35s, .35s, 0s;
+}
+.cell.free {
+  background: var(--accent-soft);
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 13px;
+  cursor: default;
+  color: var(--accent-strong);
+}
+.cell.free:hover { transform: none; }
+.cell.pending {
+  background: var(--cell-bg-pending);
+  color: var(--ink);
+}
+.cell.pending::after {
+  content: "PENDING";
+  position: absolute;
+  bottom: 2px; right: 4px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  letter-spacing: .1em;
+  color: var(--warn);
+  font-weight: 700;
+}
+.cell.claimed {
+  background: var(--cell-bg-claimed);
+  color: var(--cell-ink-claimed);
+  border-color: transparent;
+}
+.cell.claimed::after {
+  content: "✓";
+  position: absolute;
+  top: 4px; right: 6px;
+  font-size: 14px;
+  font-weight: 800;
+  opacity: .85;
+}
+
+/* board with bingo */
+.board.has-bingo {
+  box-shadow: 0 0 0 3px var(--bingo-glow), 0 0 60px var(--bingo-glow), var(--panel-shadow);
+  animation: bingo-pulse 1.8s ease-in-out infinite;
+}
+@keyframes bingo-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--bingo-glow), 0 0 40px var(--bingo-glow), var(--panel-shadow); }
+  50% { box-shadow: 0 0 0 5px var(--bingo-glow), 0 0 80px var(--bingo-glow), var(--panel-shadow); }
+}
+
+/* line overlays */
+.board .line-overlay {
+  position: absolute;
+  inset: 14px;
+  pointer-events: none;
+}
+.board .line-overlay svg { width: 100%; height: 100%; overflow: visible; }
+.board .line-overlay path {
+  stroke: var(--bingo-glow);
+  stroke-width: 6;
+  stroke-linecap: round;
+  fill: none;
+  filter: drop-shadow(0 0 8px var(--bingo-glow));
+  opacity: .85;
+}
+
+/* ============ Mini boards (live view) ============ */
+.live-strip {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 16px 28px 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-edge-soft) transparent;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,.35));
+  position: relative;
+  z-index: 5;
+}
+.live-strip::-webkit-scrollbar { height: 10px; }
+.live-strip::-webkit-scrollbar-thumb { background: var(--panel-edge); border-radius: 5px; }
+.live-strip-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: white;
+  padding: 6px 14px;
+  margin: 10px 28px 0;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  width: fit-content;
+}
+.live-strip-title .pip {
+  width: 8px; height: 8px;
+  background: var(--good);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--good);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 50% { opacity: .4; } }
+
+.mini-card {
+  flex: 0 0 auto;
+  width: 180px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-edge);
+  border-radius: 10px;
+  padding: 10px;
+  cursor: pointer;
+  transition: transform .18s var(--ease), width .3s var(--ease), box-shadow .2s var(--ease);
+  position: relative;
+}
+.mini-card:hover { transform: translateY(-3px); }
+.mini-card.has-bingo {
+  box-shadow: 0 0 0 2px var(--bingo-glow), 0 0 24px var(--bingo-glow);
+}
+.mini-card.is-self {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Multi-board: card is a touch wider than single-board (showing a "peek" of the
+   second board). On hover the card expands to reveal every board at full size. */
+.mini-card.multi-board { width: 196px; }
+.mini-card.multi-board:hover { width: 360px; }
+.mini-card.multi-board:has(.mini-board-panel:nth-child(2):not(:last-child)):hover {
+  width: 530px;
+}
+.mini-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: .04em;
+  color: var(--ink);
+}
+.mini-card-header .name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 110px;
+}
+.mini-card-header .count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-soft);
+  background: var(--panel-bg-2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.mini-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 2px;
+  width: 100%;
+  height: 100%;
+}
+.mini-grid .mc {
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-edge);
+  border-radius: 2px;
+}
+.mini-grid .mc.claimed { background: var(--cell-bg-claimed); border-color: transparent; }
+.mini-grid .mc.pending { background: var(--warn-soft); border-color: var(--warn); }
+.mini-grid .mc.free { background: var(--accent); }
+
+/* Multi-board layout: panels are real, bordered boards stacked at default,
+   fanning out on hover. */
+.mini-boards-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  position: relative;
+  overflow: visible;
+  width: 156px;
+  height: 156px;
+  transition: width .3s var(--ease), height .3s var(--ease);
+}
+.mini-board-panel {
+  position: relative;
+  flex: 0 0 156px;
+  width: 156px;
+  height: 156px;
+  border: 2px solid var(--panel-edge);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  padding: 4px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.28), 0 0 0 1px rgba(0,0,0,.04) inset;
+  transition: margin .3s var(--ease), transform .3s var(--ease), box-shadow .3s var(--ease);
+  box-sizing: border-box;
+}
+.mini-board-label {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 3;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 11px;
+  letter-spacing: .04em;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 2px solid var(--panel-bg);
+  box-shadow: 0 2px 4px rgba(0,0,0,.3);
+}
+
+/* Default: panel 2 is tucked behind panel 1, offset down + right so its
+   bottom + right edges peek out (corner visible at the bottom-right). */
+.mini-card.multi-board:not(:hover) .mini-board-panel:nth-child(1) { z-index: 3; }
+.mini-card.multi-board:not(:hover) .mini-board-panel:nth-child(2) {
+  margin-left: -134px;   /* slide back to overlap panel 1, leaving ~22px peek on right */
+  margin-top: 16px;      /* drop ~16px so bottom peeks out below panel 1 */
+  z-index: 2;
+  box-shadow: 4px 4px 12px rgba(0,0,0,.35);
+}
+.mini-card.multi-board:not(:hover) .mini-board-panel:nth-child(3) {
+  margin-left: -134px;
+  margin-top: 32px;
+  z-index: 1;
+  box-shadow: 6px 6px 14px rgba(0,0,0,.35);
+}
+.mini-card.multi-board:not(:hover) .mini-boards-row {
+  width: 178px;          /* 156 + 22 peek */
+  height: 172px;         /* 156 + 16 peek */
+}
+
+/* Hover: fan out side-by-side, all panels fully visible. */
+.mini-card.multi-board:hover .mini-boards-row {
+  width: auto;
+  height: 156px;
+}
+
+/* ============ Register screen ============ */
+.register-card {
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+}
+.register-card h1 {
+  font-family: var(--font-display);
+  font-size: 36px;
+  margin: 0 0 8px;
+  letter-spacing: 0.08em;
+}
+.register-card .lead {
+  color: var(--ink-soft);
+  margin: 0 0 24px;
+  font-size: 15px;
+}
+
+/* ============ Admin panel ============ */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 0;
+}
+.admin-sidebar { display: flex; flex-direction: column; gap: 8px; }
+.admin-tab {
+  text-align: left;
+  background: rgba(0,0,0,0.32);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(255,255,255,.88);
+  cursor: pointer;
+}
+.admin-tab:hover { background: rgba(0,0,0,0.5); }
+.admin-tab.active {
+  background: var(--panel-bg);
+  color: var(--ink);
+  border-color: var(--panel-edge);
+}
+.admin-tab .badge {
+  display: inline-block;
+  background: var(--warn);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+.admin-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.admin-section h2 {
+  font-family: var(--font-display);
+  font-size: 22px;
+  margin: 0 0 4px;
+  letter-spacing: 0.04em;
+}
+.admin-section .hint {
+  color: var(--ink-soft);
+  font-size: 13px;
+  margin: 0 0 12px;
+}
+.field-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.player-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-top: 1px solid var(--panel-edge-soft);
+  font-family: var(--font-body);
+}
+.player-row:first-child { border-top: none; }
+.player-row .meta { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--ink-soft); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-faint); }
+.dot.live { background: var(--good); box-shadow: 0 0 8px var(--good); }
+
+.claim-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: var(--panel-bg-2);
+  margin-bottom: 8px;
+  gap: 12px;
+}
+.claim-row .who {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .04em;
+}
+.claim-row .what {
+  flex: 1;
+  font-size: 14px;
+  color: var(--ink-soft);
+  min-width: 0;
+}
+.claim-row .actions { display: flex; gap: 6px; }
+
+/* ============ Two-board layout ============ */
+.boards-wrap {
+  display: flex;
+  gap: 28px;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  width: 100%;
+}
+.boards-wrap .board-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ============ Broadcast banner ============ */
+.broadcast {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  background: var(--accent);
+  color: var(--accent-on);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 14px 28px;
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.4);
+  max-width: 80vw;
+  animation: bcast 0.4s var(--ease);
+}
+@keyframes bcast {
+  from { transform: translate(-50%, -20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+/* ============ Winner toast (global celebration) ============ */
+.winner-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 250;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 26px 44px;
+  background: linear-gradient(135deg, var(--bingo-glow), var(--accent));
+  color: var(--accent-on);
+  border-radius: 18px;
+  box-shadow:
+    0 0 0 4px rgba(255,255,255,.15),
+    0 30px 80px rgba(0,0,0,.5),
+    0 0 120px var(--bingo-glow);
+  font-family: var(--font-display);
+  cursor: pointer;
+  animation: winner-in 0.5s var(--ease);
+  max-width: 92vw;
+}
+.winner-toast::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--bingo-glow), var(--accent));
+  filter: blur(24px);
+  opacity: .55;
+  z-index: -1;
+  animation: winner-pulse 2s ease-in-out infinite;
+}
+.winner-toast-trophy {
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,.4));
+  animation: winner-trophy 1.6s ease-in-out infinite;
+}
+.winner-toast-body { display: flex; flex-direction: column; }
+.winner-toast-label {
+  font-size: 13px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  font-weight: 600;
+}
+.winner-toast-name {
+  font-size: 42px;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+}
+@keyframes winner-in {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  60%  { transform: translate(-50%, -50%) scale(1.06); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@keyframes winner-pulse {
+  0%,100% { opacity: 0.45; }
+  50%     { opacity: 0.8; }
+}
+@keyframes winner-trophy {
+  0%,100% { transform: rotate(-6deg); }
+  50%     { transform: rotate(6deg); }
+}
+
+/* ============ Modal ============ */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  display: grid;
+  place-items: center;
+  z-index: 200;
+  padding: 20px;
+}
+.modal {
+  max-width: 560px;
+  width: 100%;
+  max-height: 80vh;
+  overflow: auto;
+}
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px 12px;
+  border-bottom: 1px solid var(--panel-edge-soft);
+}
+.modal-header h3 {
+  font-family: var(--font-display);
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: .04em;
+}
+
+/* Floating helper / hint text that lives over the background image —
+   pill-style backdrop so it reads against any background. */
+.floating-hint {
+  display: inline-block;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(8px);
+  color: rgba(255,255,255,0.92);
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* utility */
+.row { display: flex; gap: 12px; align-items: center; }
+.row.wrap { flex-wrap: wrap; }
+.col { display: flex; flex-direction: column; gap: 8px; }
+.spacer { flex: 1; }
+.divider { height: 1px; background: var(--panel-edge-soft); margin: 12px 0; }
+
+/* status pill */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  background: rgba(255,255,255,0.7);
+  color: var(--ink);
+}
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+
+/* responsive */
+@media (max-width: 1100px) {
+  .boards-wrap .board { max-width: 460px; }
+}
+@media (max-width: 720px) {
+  .topbar { padding: 12px 16px; }
+  .shell { padding: 0 16px 16px; }
+  .admin-grid { grid-template-columns: 1fr; }
+  .board .cell { font-size: 10px; }
+}

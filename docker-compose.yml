@@ -1,0 +1,20 @@
+services:
+  bingo:
+    build: .
+    image: lek-bingo:latest
+    container_name: lek-bingo
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # Override the default 'nanohope' admin password in production.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-nanohope}
+      PORT: "3000"
+    volumes:
+      # Persisted game state (survives container restarts).
+      - bingo-data:/app/data
+      # Editable word list — mount your own bingo_words.json here.
+      - ./bingo_words.json:/app/bingo_words.json
+
+volumes:
+  bingo-data:

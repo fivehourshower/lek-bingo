@@ -1,0 +1,334 @@
+/* ============================================================
+   ERA THEMES — six Civ eras, switched via [data-theme] on <body>.
+   Admin picks the active theme from the admin panel.
+   Each era has its own palette + typography + ornament style.
+   ============================================================ */
+
+:root {
+  --board-cell-gap: 6px;
+  --board-radius: 10px;
+  --ease: cubic-bezier(.2,.7,.2,1);
+}
+
+/* ============================================================
+   ERA 1 — ANCIENT  (papyrus + terracotta + bronze)
+   Sumer / Egypt / Bronze Age. Engraved capitals, warm clay tones.
+   ============================================================ */
+[data-theme="ancient"] {
+  --font-display: 'Cinzel', 'Trajan Pro', serif;
+  --font-body: 'Spectral', 'EB Garamond', Georgia, serif;
+  --font-mono: 'Spectral Mono', 'JetBrains Mono', monospace;
+
+  --bg-page: #1f130a;
+  --bg-overlay: rgba(31, 19, 10, 0.78);
+
+  --panel-bg: #efddb8;
+  --panel-bg-2: #e6cf9d;
+  --panel-edge: #6b3e15;
+  --panel-edge-soft: #b8843a;
+  --panel-shadow: 0 24px 60px -20px rgba(0,0,0,.75), 0 2px 0 #4a2a0e inset;
+
+  --ink: #2c1c0c;
+  --ink-soft: #5d4220;
+  --ink-faint: #8a6b40;
+
+  --accent: #c46a1f;          /* terracotta */
+  --accent-strong: #8a4612;
+  --accent-soft: #f0c790;
+  --accent-on: #2c1c0c;
+
+  --secondary: #a48022;       /* aged bronze */
+  --good: #4a6e22;
+  --good-soft: #d6e0b0;
+  --warn: #b86a14;
+  --warn-soft: #f2d6a8;
+  --bad: #8a2820;
+  --bad-soft: #e8c0bb;
+
+  --cell-bg: #f8ebcc;
+  --cell-bg-claimed: #c46a1f;
+  --cell-bg-pending: repeating-linear-gradient(45deg, #f0d4a8 0 10px, #e8bf85 10px 20px);
+  --cell-ink: #2c1c0c;
+  --cell-ink-claimed: #fdeecd;
+  --cell-edge: #b8843a;
+
+  --bingo-glow: #e8a330;
+}
+
+/* ============================================================
+   ERA 2 — MEDIEVAL  (illuminated manuscript)
+   Dark vellum, vermillion + gold leaf + ink black.
+   ============================================================ */
+[data-theme="medieval"] {
+  --font-display: 'IM Fell English SC', 'Cinzel', serif;
+  --font-body: 'IM Fell English', 'Cardo', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg-page: #160a0e;
+  --bg-overlay: rgba(22, 10, 14, 0.82);
+
+  --panel-bg: #f3e6c8;
+  --panel-bg-2: #ecd9b0;
+  --panel-edge: #4a1620;
+  --panel-edge-soft: #a04a3a;
+  --panel-shadow: 0 24px 60px -16px rgba(0,0,0,.8), 0 0 0 2px #8a2a2a inset, 0 0 0 5px var(--panel-bg) inset;
+
+  --ink: #1f0a0e;
+  --ink-soft: #4a2228;
+  --ink-faint: #8a5a55;
+
+  --accent: #b8242c;          /* vermillion */
+  --accent-strong: #7a1218;
+  --accent-soft: #ebbcbf;
+  --accent-on: #f3e6c8;
+
+  --secondary: #a48022;       /* gold leaf */
+  --good: #2a5a32;
+  --good-soft: #c6dec8;
+  --warn: #a0651a;
+  --warn-soft: #ecd7a8;
+  --bad: #5e0e16;
+  --bad-soft: #e8c0bb;
+
+  --cell-bg: #f8ecd0;
+  --cell-bg-claimed: #b8242c;
+  --cell-bg-pending: repeating-linear-gradient(45deg, #f0d4a8 0 10px, #e8bf85 10px 20px);
+  --cell-ink: #1f0a0e;
+  --cell-ink-claimed: #f3e6c8;
+  --cell-edge: #a04a3a;
+
+  --bingo-glow: #d4a72c;
+}
+
+/* ============================================================
+   ERA 3 — RENAISSANCE  (Florentine ivory + verde + sienna)
+   da Vinci sketchbook. Refined, balanced, classical.
+   ============================================================ */
+[data-theme="renaissance"] {
+  --font-display: 'Italiana', 'Cormorant Garamond', serif;
+  --font-body: 'Cormorant Garamond', 'EB Garamond', Georgia, serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg-page: #0e1d18;
+  --bg-overlay: rgba(14, 29, 24, 0.82);
+
+  --panel-bg: #efe5d0;
+  --panel-bg-2: #e2d4b8;
+  --panel-edge: #2a4830;
+  --panel-edge-soft: #6a7a55;
+  --panel-shadow: 0 24px 60px -22px rgba(0,0,0,.65), 0 1px 0 rgba(255,255,255,.4) inset;
+
+  --ink: #1a2418;
+  --ink-soft: #475040;
+  --ink-faint: #8a8a72;
+
+  --accent: #c2701c;          /* sienna */
+  --accent-strong: #8c4e10;
+  --accent-soft: #efcfa0;
+  --accent-on: #efe5d0;
+
+  --secondary: #1f6a4a;       /* verde antico */
+  --good: #1f6a4a;
+  --good-soft: #c4ddcc;
+  --warn: #b07418;
+  --warn-soft: #f0dba8;
+  --bad: #8a2a20;
+  --bad-soft: #e8c0bb;
+
+  --cell-bg: #f7eed8;
+  --cell-bg-claimed: #1f6a4a;
+  --cell-bg-pending: repeating-linear-gradient(45deg, #f0e0b8 0 10px, #e8d098 10px 20px);
+  --cell-ink: #1a2418;
+  --cell-ink-claimed: #efe5d0;
+  --cell-edge: #b8a886;
+
+  --bingo-glow: #c2701c;
+}
+
+/* ============================================================
+   ERA 4 — INDUSTRIAL  (Victorian / steampunk / brass + iron)
+   Soot, oxblood leather, brass fittings. Dark panels.
+   ============================================================ */
+[data-theme="industrial"] {
+  --font-display: 'Playfair Display', 'Cinzel', serif;
+  --font-body: 'Special Elite', 'Cardo', Georgia, serif;
+  --font-mono: 'Special Elite', monospace;
+
+  --bg-page: #0f0c08;
+  --bg-overlay: rgba(15, 12, 8, 0.86);
+
+  --panel-bg: #1e1812;
+  --panel-bg-2: #2a221a;
+  --panel-edge: #6a4a1a;
+  --panel-edge-soft: #4a3a26;
+  --panel-shadow: 0 28px 70px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(196,140,44,.25) inset;
+
+  --ink: #f3e7cc;
+  --ink-soft: #b8a884;
+  --ink-faint: #80715a;
+
+  --accent: #c48a2c;          /* brass */
+  --accent-strong: #8c5e14;
+  --accent-soft: #4a3a18;
+  --accent-on: #14100a;
+
+  --secondary: #8b1f1a;       /* oxblood */
+  --good: #6ea84a;
+  --good-soft: rgba(110,168,74,.18);
+  --warn: #e0a82a;
+  --warn-soft: rgba(224,168,42,.18);
+  --bad: #c4382a;
+  --bad-soft: rgba(196,56,42,.2);
+
+  --cell-bg: #14110a;
+  --cell-bg-claimed: linear-gradient(160deg, #c48a2c, #8a5614);
+  --cell-bg-pending: repeating-linear-gradient(45deg, rgba(224,168,42,.18) 0 10px, rgba(224,168,42,.32) 10px 20px);
+  --cell-ink: #f3e7cc;
+  --cell-ink-claimed: #14100a;
+  --cell-edge: #6a4a1a;
+
+  --bingo-glow: #e0a82a;
+}
+
+/* ============================================================
+   ERA 5 — MODERN  (mid-century atomic / poster modernism)
+   Off-white + bold red + navy + sunny gold. Optimistic.
+   ============================================================ */
+[data-theme="modern"] {
+  --font-display: 'DM Sans', 'Archivo', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg-page: #0e1430;
+  --bg-overlay: rgba(14, 20, 48, 0.78);
+
+  --panel-bg: #fbf6eb;
+  --panel-bg-2: #f1eadb;
+  --panel-edge: #1a1f3a;
+  --panel-edge-soft: #cdc7b6;
+  --panel-shadow: 8px 8px 0 #1a1f3a, 0 20px 50px -25px rgba(0,0,0,.5);
+
+  --ink: #1a1f3a;
+  --ink-soft: #4a4f6b;
+  --ink-faint: #8a8d9c;
+
+  --accent: #e63946;          /* signal red */
+  --accent-strong: #b81e2a;
+  --accent-soft: #ffd5d9;
+  --accent-on: #fbf6eb;
+
+  --secondary: #2a3b6b;       /* navy */
+  --good: #2a7a4a;
+  --good-soft: #cce6d4;
+  --warn: #e0a32a;
+  --warn-soft: #fdebc4;
+  --bad: #b81e2a;
+  --bad-soft: #f5cdd2;
+
+  --cell-bg: #ffffff;
+  --cell-bg-claimed: #e63946;
+  --cell-bg-pending: repeating-linear-gradient(45deg, #fde8c0 0 10px, #f8d490 10px 20px);
+  --cell-ink: #1a1f3a;
+  --cell-ink-claimed: #fbf6eb;
+  --cell-edge: #cdc7b6;
+
+  --bingo-glow: #e63946;
+}
+
+/* ============================================================
+   ERA 6 — INFORMATION  (digital / dark + neon cyan + magenta)
+   Cyberpunk-lite, terminal, broadcast. Grid lines.
+   ============================================================ */
+[data-theme="information"] {
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --bg-page: #050814;
+  --bg-overlay: rgba(5, 8, 20, 0.88);
+
+  --panel-bg: #0e1426;
+  --panel-bg-2: #14193a;
+  --panel-edge: #1f2d5c;
+  --panel-edge-soft: #2a3870;
+  --panel-shadow: 0 30px 80px -30px rgba(0,229,255,.25), 0 0 0 1px rgba(0,229,255,.12) inset;
+
+  --ink: #d4dfff;
+  --ink-soft: #8e9bc8;
+  --ink-faint: #5a6896;
+
+  --accent: #00e5ff;          /* cyan */
+  --accent-strong: #00a8c2;
+  --accent-soft: rgba(0,229,255,.18);
+  --accent-on: #050814;
+
+  --secondary: #ff3ea5;       /* magenta */
+  --good: #28e0a8;
+  --good-soft: rgba(40,224,168,.18);
+  --warn: #ffcc4a;
+  --warn-soft: rgba(255,204,74,.16);
+  --bad: #ff5b7a;
+  --bad-soft: rgba(255,91,122,.18);
+
+  --cell-bg: #0a1126;
+  --cell-bg-claimed: linear-gradient(135deg, #00e5ff, #ff3ea5);
+  --cell-bg-pending: repeating-linear-gradient(45deg, rgba(255,204,74,.18) 0 10px, rgba(255,204,74,.32) 10px 20px);
+  --cell-ink: #d4dfff;
+  --cell-ink-claimed: #050814;
+  --cell-edge: #1f2d5c;
+
+  --bingo-glow: #00e5ff;
+}
+
+/* ============================================================
+   Per-era flourishes that bolt onto base components.
+   ============================================================ */
+
+/* Medieval: drop-cap initial on the page title */
+[data-theme="medieval"] .topbar-title { font-variant: small-caps; }
+[data-theme="medieval"] .panel { border-width: 1.5px; }
+
+/* Industrial: subtle riveted edge */
+[data-theme="industrial"] .panel::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px dashed rgba(196,138,44,.25);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+/* Modern: hard offset shadow on buttons */
+[data-theme="modern"] .btn-primary { box-shadow: 4px 4px 0 var(--ink); border-radius: 4px; }
+[data-theme="modern"] .btn-primary:hover { box-shadow: 2px 2px 0 var(--ink); transform: translate(1px,1px); }
+[data-theme="modern"] .btn { border-radius: 4px; }
+[data-theme="modern"] .panel { border-radius: 6px; }
+[data-theme="modern"] .cell { border-radius: 3px; }
+
+/* Information: grid backdrop overlay on body */
+[data-theme="information"] body::before {
+  background:
+    radial-gradient(ellipse at top, rgba(0,229,255,.08), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(255,62,165,.06), transparent 50%),
+    linear-gradient(rgba(5,8,20,.86), rgba(5,8,20,.92));
+}
+[data-theme="information"] .panel { border-radius: 6px; }
+
+/* Ancient: faint hatched paper texture on panels */
+[data-theme="ancient"] .panel {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(107,62,21,.04) 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, rgba(107,62,21,.04) 0 1px, transparent 1px 4px),
+    linear-gradient(180deg, var(--panel-bg), var(--panel-bg-2));
+}
+
+/* Renaissance: soft inner border for refinement */
+[data-theme="renaissance"] .panel { border-radius: 4px; }
+[data-theme="renaissance"] .panel::after {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(42,72,48,.2);
+  border-radius: 2px;
+  pointer-events: none;
+}
