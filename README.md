@@ -10,10 +10,14 @@ Docker host) and stay up.
 ```sh
 cd server
 npm install
+npm run build:client
 npm run lint
 node server.js
 # → open http://localhost:3000
 ```
+
+The browser app is precompiled into `public/bundle.js` during the Docker build,
+so the page no longer relies on Babel Standalone in the browser.
 
 Environment variables (all optional):
 

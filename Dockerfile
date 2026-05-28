@@ -1,14 +1,32 @@
-# ---- build/runtime image ----
+# ---- build stage ----
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Install all deps needed to build the browser bundle.
+COPY package*.json ./
+RUN npm install
+
+# App source
+COPY . .
+
+# Precompile the browser bundle once, at image build time.
+RUN npm run build:client
+
+# ---- runtime stage ----
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install deps (cached if package*.json unchanged)
+# Install only runtime deps.
 COPY package*.json ./
 RUN npm install --omit=dev
 
-# App source
-COPY . .
+# Copy runtime files and the prebuilt client bundle.
+COPY --from=build /app/server.js ./
+COPY --from=build /app/state.js ./
+COPY --from=build /app/bingo_words.json ./
+COPY --from=build /app/public ./public
 
 # Where state and the editable word list / background live
 RUN mkdir -p /app/data

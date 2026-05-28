@@ -1,12 +1,12 @@
 // board.jsx — Bingo board components: Square, Board, MiniBoard, LiveStrip.
 
 const POLL_ROYAL_THEMES = [
-  { name: 'amethyst', label: 'Amethyst', accent: '#8b5cf6', accentDark: '#5b21b6', accentSoft: 'rgba(139,92,246,.18)', text: '#f5efff' },
-  { name: 'ruby', label: 'Ruby', accent: '#dc2626', accentDark: '#991b1b', accentSoft: 'rgba(220,38,38,.18)', text: '#fff1f1' },
+  { name: 'amethyst', label: 'Amethyst', accent: '#7c3aed', accentDark: '#4c1d95', accentSoft: 'rgba(124,58,237,.18)', text: '#f5efff' },
+  { name: 'amber', label: 'Amber', accent: '#f59e0b', accentDark: '#92400e', accentSoft: 'rgba(245,158,11,.18)', text: '#fff7e8' },
+  { name: 'emerald', label: 'Emerald', accent: '#10b981', accentDark: '#065f46', accentSoft: 'rgba(16,185,129,.18)', text: '#effdf3' },
+  { name: 'ruby', label: 'Ruby', accent: '#e11d48', accentDark: '#9f1239', accentSoft: 'rgba(225,29,72,.18)', text: '#fff1f1' },
   { name: 'sapphire', label: 'Sapphire', accent: '#2563eb', accentDark: '#1e3a8a', accentSoft: 'rgba(37,99,235,.18)', text: '#eef4ff' },
-  { name: 'emerald', label: 'Emerald', accent: '#16a34a', accentDark: '#166534', accentSoft: 'rgba(22,163,74,.18)', text: '#effdf3' },
-  { name: 'gold', label: 'Gold', accent: '#d97706', accentDark: '#92400e', accentSoft: 'rgba(217,119,6,.18)', text: '#fff7e8' },
-  { name: 'opal', label: 'Opal', accent: '#0f766e', accentDark: '#134e4a', accentSoft: 'rgba(15,118,110,.18)', text: '#e9fffd' },
+  { name: 'teal', label: 'Teal', accent: '#14b8a6', accentDark: '#0f766e', accentSoft: 'rgba(20,184,166,.18)', text: '#e9fffd' },
 ];
 
 function getPollTheme(index) {

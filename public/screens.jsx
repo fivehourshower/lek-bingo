@@ -263,6 +263,7 @@ function BingoPlay({ state, session }) {
 }
 
 function PredictionPoll({ state, canVote }) {
+  const [collapsed, setCollapsed] = React.useState(false);
   const session = useSession();
   const poll = state.poll || { options: ['', '', '', '', '', ''], votes: {} };
   const options = Array.isArray(poll.options) ? poll.options.slice(0, 6) : [];
@@ -311,9 +312,22 @@ function PredictionPoll({ state, canVote }) {
           <div className="floating-hint" style={{ marginBottom: 10 }}>Prediction poll</div>
           <h2 style={{ margin: 0 }}>Who wins?</h2>
         </div>
-        <span className="pill" style={{ alignSelf: 'flex-start' }}>{totalVotes} vote{totalVotes === 1 ? '' : 's'}</span>
+        <div className="row" style={{ gap: 8, alignItems: 'center' }}>
+          <span className="pill" style={{ alignSelf: 'flex-start' }}>{totalVotes} vote{totalVotes === 1 ? '' : 's'}</span>
+          <button
+            type="button"
+            className="btn btn-ghost btn-xs"
+            onClick={() => setCollapsed(v => !v)}
+            aria-expanded={!collapsed}
+            aria-label={collapsed ? 'Expand prediction panel' : 'Collapse prediction panel'}
+          >
+            {collapsed ? 'Expand' : 'Collapse'}
+          </button>
+        </div>
       </div>
 
+      {!collapsed && (
+        <>
       <p className="hint" style={{ marginTop: 10 }}>
         Pick one winner. The bars show the current share of predictions.
       </p>
@@ -406,6 +420,8 @@ function PredictionPoll({ state, canVote }) {
         <div className="hint" style={{ marginTop: 12 }}>
           You are out of tokens. Win a bingo to earn 10 more.
         </div>
+      )}
+        </>
       )}
     </div>
   );

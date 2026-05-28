@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "build:client": "node scripts/build-client.js",
+    "build": "npm run build:client",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
   },
@@ -15,6 +17,9 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
+    "@babel/preset-env": "^7.29.0",
+    "@babel/preset-react": "^7.28.5",
     "eslint": "^9.25.1"
   },
   "engines": {
