@@ -184,10 +184,9 @@ function MiniBoard({ player, state, isSelf, isLive, isConfirmedWinner, onClick }
                 '--poll-accent-soft': prediction.theme.accentSoft,
                 '--poll-accent-text': prediction.theme.text,
               }}
-              title={`Top prediction: ${prediction.optionLabel}`}
+              title="Champion banner"
             >
               <span className="name">{player.username}</span>
-              <span className="pick-label">{prediction.optionLabel}</span>
             </span>
           ) : (
             <span className="name">{player.username}</span>

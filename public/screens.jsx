@@ -119,10 +119,11 @@ function Register({ state, onAdminClick }) {
 
         <div className="shell-rail">
           <PredictionPoll state={state} canVote={false} />
-          <div style={{ marginTop: 16 }}>
-            <LiveStrip state={state} selfUsername={null} />
-          </div>
         </div>
+      </div>
+
+      <div className="panel live-boards-panel">
+        <LiveStrip state={state} selfUsername={null} />
       </div>
     </div>
   );
@@ -224,14 +225,16 @@ function BingoPlay({ state, session }) {
 
         <div className="shell-rail">
           <PredictionPoll state={state} canVote={true} />
-          <div style={{ marginTop: 16 }}>
-            <LiveStrip
-              state={state}
-              selfUsername={session.username}
-              onClickPlayer={(p) => setExpanded(p)}
-            />
-          </div>
         </div>
+      </div>
+
+      <div className="panel live-boards-panel">
+        <LiveStrip
+          state={state}
+          selfUsername={session.username}
+          onClickPlayer={(p) => setExpanded(p)}
+        />
+      </div>
 
       {expanded && (
         <Modal title={`${expanded.username}'s board${expanded.boards.length > 1 ? 's' : ''}`} onClose={() => setExpanded(null)} wide>
@@ -256,7 +259,6 @@ function BingoPlay({ state, session }) {
           🎉 BINGO! 🎉
         </div>
       )}
-      </div>
     </div>
   );
 }
