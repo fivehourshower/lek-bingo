@@ -296,6 +296,8 @@ function PredictionPoll({ state, canVote }) {
   const configured = options.every(option => !!String(option).trim());
   const ownPlayer = session.username ? state.players[session.username] : null;
   const tokensLeft = ownPlayer ? Math.max(0, Number(ownPlayer.tokens) || 0) : 0;
+  const showVoteInterface = canVote && configured && !!ownPlayer && tokensLeft > 0;
+  const showResults = !showVoteInterface;
 
   const vote = (idx) => {
     if (!canVote || !configured) return;
@@ -317,7 +319,7 @@ function PredictionPoll({ state, canVote }) {
         Pick one winner. The bars show the current share of predictions and always sum to 100%.
       </p>
 
-      {canVote && (
+      {canVote && ownPlayer && (
         <div className="row wrap" style={{ gap: 8, marginTop: 8 }}>
           <span className="pill good">{tokensLeft} token{tokensLeft === 1 ? '' : 's'} left</span>
         </div>
@@ -330,66 +332,70 @@ function PredictionPoll({ state, canVote }) {
         </div>
       )}
 
-      <div className="poll-options" style={{ marginTop: 12 }}>
-        {options.map((option, idx) => (
-          (() => {
-            const theme = getPollTheme(idx);
-            return (
-          <button
-            key={idx}
-            type="button"
-            className={'poll-option poll-theme-' + theme.name + (myVotes.includes(idx) ? ' selected' : '')}
-            style={{
-              '--poll-accent': theme.accent,
-              '--poll-accent-dark': theme.accentDark,
-              '--poll-accent-soft': theme.accentSoft,
-              '--poll-accent-text': theme.text,
-            }}
-            onClick={() => vote(idx)}
-            disabled={!canVote || !configured || !ownPlayer || tokensLeft <= 0}
-          >
-            <span className="poll-theme-dot" aria-hidden="true"></span>
-            <span className="poll-option-label">{option || `Option ${idx + 1}`}</span>
-            <span className="pill" style={{ marginLeft: 'auto' }}>{shares[idx]}%</span>
-          </button>
-            );
-          })()
-        ))}
-      </div>
+      {showVoteInterface && (
+        <div className="poll-options" style={{ marginTop: 12 }}>
+          {options.map((option, idx) => (
+            (() => {
+              const theme = getPollTheme(idx);
+              return (
+            <button
+              key={idx}
+              type="button"
+              className={'poll-option poll-theme-' + theme.name + (myVotes.includes(idx) ? ' selected' : '')}
+              style={{
+                '--poll-accent': theme.accent,
+                '--poll-accent-dark': theme.accentDark,
+                '--poll-accent-soft': theme.accentSoft,
+                '--poll-accent-text': theme.text,
+              }}
+              onClick={() => vote(idx)}
+              disabled={!showVoteInterface}
+            >
+              <span className="poll-theme-dot" aria-hidden="true"></span>
+              <span className="poll-option-label">{option || `Option ${idx + 1}`}</span>
+              <span className="pill" style={{ marginLeft: 'auto' }}>{shares[idx]}%</span>
+            </button>
+              );
+            })()
+          ))}
+        </div>
+      )}
 
-      <div className="poll-chart" style={{ marginTop: 14 }}>
-        {options.map((option, idx) => (
-          (() => {
-            const theme = getPollTheme(idx);
-            return (
-          <div className="poll-row" key={idx}>
-            <div className="row" style={{ justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
-              <div className="poll-row-label">
-                <span className={'poll-index poll-theme-' + theme.name} style={{
-                  '--poll-accent': theme.accent,
-                  '--poll-accent-dark': theme.accentDark,
-                  '--poll-accent-soft': theme.accentSoft,
-                  '--poll-accent-text': theme.text,
-                }}>{idx + 1}</span>
-                <span className="poll-option-name">{option || `Option ${idx + 1}`}</span>
-                {myVotes.includes(idx) && <span className="pill good">Your pick</span>}
+      {showResults && (
+        <div className="poll-chart" style={{ marginTop: 14 }}>
+          {options.map((option, idx) => (
+            (() => {
+              const theme = getPollTheme(idx);
+              return (
+            <div className="poll-row" key={idx}>
+              <div className="row" style={{ justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+                <div className="poll-row-label">
+                  <span className={'poll-index poll-theme-' + theme.name} style={{
+                    '--poll-accent': theme.accent,
+                    '--poll-accent-dark': theme.accentDark,
+                    '--poll-accent-soft': theme.accentSoft,
+                    '--poll-accent-text': theme.text,
+                  }}>{idx + 1}</span>
+                  <span className="poll-option-name">{option || `Option ${idx + 1}`}</span>
+                  {myVotes.includes(idx) && <span className="pill good">Your pick</span>}
+                </div>
+                <div className="poll-row-meta">{counts[idx]} vote{counts[idx] === 1 ? '' : 's'}</div>
               </div>
-              <div className="poll-row-meta">{counts[idx]} vote{counts[idx] === 1 ? '' : 's'}</div>
+              <div className={'poll-bar-track poll-theme-' + theme.name} style={{
+                '--poll-accent': theme.accent,
+                '--poll-accent-dark': theme.accentDark,
+                '--poll-accent-soft': theme.accentSoft,
+                '--poll-accent-text': theme.text,
+              }}>
+                <div className="poll-bar-fill" style={{ width: `${shares[idx]}%` }} />
+                <div className="poll-bar-text">{shares[idx]}%</div>
+              </div>
             </div>
-            <div className={'poll-bar-track poll-theme-' + theme.name} style={{
-              '--poll-accent': theme.accent,
-              '--poll-accent-dark': theme.accentDark,
-              '--poll-accent-soft': theme.accentSoft,
-              '--poll-accent-text': theme.text,
-            }}>
-              <div className="poll-bar-fill" style={{ width: `${shares[idx]}%` }} />
-              <div className="poll-bar-text">{shares[idx]}%</div>
-            </div>
-          </div>
-            );
-          })()
-        ))}
-      </div>
+              );
+            })()
+          ))}
+        </div>
+      )}
 
       {!canVote && (
         <div className="hint" style={{ marginTop: 12 }}>

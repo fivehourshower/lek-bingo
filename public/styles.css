@@ -614,6 +614,42 @@ body::before {
   position: relative;
 }
 .mini-card:hover { transform: translateY(-3px); }
+.mini-card.has-champion-banner {
+  background:
+    linear-gradient(180deg,
+      color-mix(in oklch, var(--poll-accent-dark, #5b1f1f) 76%, black 24%) 0%,
+      color-mix(in oklch, var(--poll-accent, #8b3a3a) 72%, black 28%) 100%);
+  border-color: color-mix(in oklch, var(--poll-accent, #8b3a3a) 42%, #f2d48d 58%);
+  box-shadow:
+    inset 0 0 0 1px rgba(245, 221, 163, 0.24),
+    inset 0 -16px 30px rgba(0,0,0,.26),
+    0 12px 28px rgba(0,0,0,.28);
+  overflow: hidden;
+}
+.mini-card.has-champion-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255,255,255,0.00) 0px,
+      rgba(255,255,255,0.00) 12px,
+      rgba(255,255,255,0.08) 18px,
+      rgba(0,0,0,0.16) 30px,
+      rgba(255,255,255,0.00) 42px
+    ),
+    radial-gradient(120% 70% at 50% 0%, rgba(245, 221, 163, 0.18), rgba(255,255,255,0) 60%),
+    radial-gradient(120% 100% at 50% 100%, rgba(0,0,0,0.24), rgba(0,0,0,0) 60%);
+  pointer-events: none;
+}
+.mini-card.has-champion-banner::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 50% 8px, rgba(245, 221, 163, 0.28) 0, rgba(245, 221, 163, 0) 44px);
+  pointer-events: none;
+}
 .mini-card.has-bingo {
   box-shadow: 0 0 0 2px var(--bingo-glow), 0 0 24px var(--bingo-glow);
 }
@@ -638,6 +674,8 @@ body::before {
   font-size: 12px;
   letter-spacing: .04em;
   color: var(--ink);
+  position: relative;
+  z-index: 2;
 }
 .mini-card-header .name {
   font-weight: 700;
@@ -654,12 +692,23 @@ body::before {
   padding: 2px 6px;
   border-radius: 4px;
 }
+.mini-card.has-champion-banner .mini-card-header {
+  color: var(--poll-accent-text, #f7f3ea);
+  text-shadow: 0 1px 1px rgba(0,0,0,.35);
+}
+.mini-card.has-champion-banner .mini-card-header .count {
+  background: rgba(0,0,0,.28);
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.2);
+}
 .mini-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 2px;
   width: 100%;
   height: 100%;
+  position: relative;
+  z-index: 2;
 }
 .mini-grid .mc {
   background: var(--cell-bg);

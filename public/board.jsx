@@ -168,29 +168,24 @@ function MiniBoard({ player, state, isSelf, isLive, isConfirmedWinner, onClick }
     'mini-card',
     boards.length > 1 && 'multi-board',
     bingoLines > 0 && 'has-bingo',
+    prediction && 'has-champion-banner',
     isSelf && 'is-self',
   ].filter(Boolean).join(' ');
   return (
-    <div className={cls} onClick={onClick}>
+    <div
+      className={cls}
+      style={prediction ? {
+        '--poll-accent': prediction.theme.accent,
+        '--poll-accent-dark': prediction.theme.accentDark,
+        '--poll-accent-soft': prediction.theme.accentSoft,
+        '--poll-accent-text': prediction.theme.text,
+      } : undefined}
+      onClick={onClick}
+    >
       <div className="mini-card-header">
         <div className="row" style={{ gap: 6, minWidth: 0, flex: 1 }}>
           <span className={'dot' + (isLive ? ' live' : '')}></span>
-          {prediction ? (
-            <span
-              className={'mini-pick-banner poll-theme-' + prediction.theme.name}
-              style={{
-                '--poll-accent': prediction.theme.accent,
-                '--poll-accent-dark': prediction.theme.accentDark,
-                '--poll-accent-soft': prediction.theme.accentSoft,
-                '--poll-accent-text': prediction.theme.text,
-              }}
-              title="Champion banner"
-            >
-              <span className="name">{player.username}</span>
-            </span>
-          ) : (
-            <span className="name">{player.username}</span>
-          )}
+          <span className="name">{player.username}</span>
         </div>
         <span className="count">{claimedCount}/{total}</span>
       </div>
