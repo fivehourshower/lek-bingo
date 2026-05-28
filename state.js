@@ -17,6 +17,8 @@ const DEFAULT_THEME = 'medieval';
 const DEFAULT_POLL_OPTIONS = Array.from({ length: 6 }, () => '');
 const STARTING_TOKENS = 10;
 const BINGO_REWARD_TOKENS = 10;
+const TOKEN_DRIP_INTERVAL_MS = 15 * 60_000;
+const TOKEN_DRIP_AMOUNT = 1;
 
 const FALLBACK_WORDS = Array.from({ length: 30 }, (_, i) => `Sample square ${i + 1}`);
 
@@ -65,7 +67,7 @@ function emptyState() {
     broadcast: null,
     poll: emptyPoll(),
     forcedWinners: [],
-    players: {},          // [username]: { username, joinedAt, lastSeen, boards, tokens }
+    players: {},          // [username]: { username, joinedAt, lastSeen, boards, tokens, tokenClockAt, confirmedBingos }
     pendingClaims: [],    // unused with new flow; kept for shape compatibility
     kicked: [],
   };
@@ -103,9 +105,14 @@ function normalizePoll(poll) {
 function normalizePlayer(player) {
   if (!player || typeof player !== 'object') return player;
   const tokensValue = Number(player.tokens);
+  const tokenClockValue = Number(player.tokenClockAt);
+  const confirmedBingosValue = Number(player.confirmedBingos);
+  const fallbackClock = Number(player.joinedAt) || Date.now();
   return {
     ...player,
     tokens: Number.isFinite(tokensValue) ? Math.max(0, tokensValue) : STARTING_TOKENS,
+    tokenClockAt: Number.isFinite(tokenClockValue) ? tokenClockValue : fallbackClock,
+    confirmedBingos: Number.isFinite(confirmedBingosValue) ? Math.max(0, Math.floor(confirmedBingosValue)) : 0,
   };
 }
 
@@ -146,6 +153,17 @@ function adjustPlayerTokens(username, delta) {
   if (!player) return false;
   player.tokens = Math.max(0, (Number(player.tokens) || 0) + delta);
   return true;
+}
+
+function maybeGrantPassiveToken(player, nowTs) {
+  const lastTick = Number.isFinite(Number(player.tokenClockAt)) ? Number(player.tokenClockAt) : nowTs;
+  const elapsed = nowTs - lastTick;
+  if (elapsed < TOKEN_DRIP_INTERVAL_MS) return 0;
+  const intervals = Math.floor(elapsed / TOKEN_DRIP_INTERVAL_MS);
+  if (intervals <= 0) return 0;
+  player.tokens = Math.max(0, Number(player.tokens) || 0) + intervals * TOKEN_DRIP_AMOUNT;
+  player.tokenClockAt = lastTick + intervals * TOKEN_DRIP_INTERVAL_MS;
+  return intervals;
 }
 
 function makeBoard(state) {
@@ -325,6 +343,7 @@ const actions = {
     if (existing) {
       existing.lastSeen = Date.now();
       if (existing.tokens === undefined || existing.tokens === null) existing.tokens = STARTING_TOKENS;
+      if (!Number.isFinite(Number(existing.tokenClockAt))) existing.tokenClockAt = Date.now();
       if (boardCount === 2 && existing.boards.length < 2) existing.boards.push(makeBoard(state));
     } else {
       state.players[username] = {
@@ -333,6 +352,8 @@ const actions = {
         lastSeen: Date.now(),
         boards: Array.from({ length: boardCount }, () => makeBoard(state)),
         tokens: STARTING_TOKENS,
+        tokenClockAt: Date.now(),
+        confirmedBingos: 0,
       };
     }
     persist();
@@ -393,6 +414,7 @@ const actions = {
     state.gameId = newGameId();
     Object.values(state.players).forEach(p => {
       p.boards = p.boards.map(() => makeBoard(state));
+      p.confirmedBingos = 0;
     });
     state.pendingClaims = [];
     state.forcedWinners = [];
@@ -460,15 +482,35 @@ const actions = {
     persist();
   },
 
-  awardBingoTokens(username, amount = BINGO_REWARD_TOKENS) {
+  awardBingoTokens(username) {
     username = String(username || '').trim();
     const player = state.players[username];
     if (!player) return { error: 'Player required' };
-    const reward = Math.max(0, Number(amount) || 0);
-    if (!reward) return { ok: true };
-    adjustPlayerTokens(username, reward);
+    const currentBingos = countBingosForPlayer(player);
+    const confirmedBingos = Math.max(0, Number(player.confirmedBingos) || 0);
+    const pendingBingos = Math.max(0, currentBingos - confirmedBingos);
+
+    if (pendingBingos <= 0) {
+      if (!state.forcedWinners.includes(username)) state.forcedWinners.push(username);
+      persist();
+      return { ok: true, granted: 0 };
+    }
+
+    adjustPlayerTokens(username, pendingBingos * BINGO_REWARD_TOKENS);
+    player.confirmedBingos = confirmedBingos + pendingBingos;
+    if (!state.forcedWinners.includes(username)) state.forcedWinners.push(username);
     persist();
-    return { ok: true };
+    return { ok: true, granted: pendingBingos };
+  },
+
+  grantPassiveTokens(now = Date.now()) {
+    let changed = false;
+    Object.values(state.players).forEach(player => {
+      const grantedIntervals = maybeGrantPassiveToken(player, now);
+      if (grantedIntervals > 0) changed = true;
+    });
+    if (changed) persist();
+    return { changed };
   },
 
   votePrediction(username, optionIdx) {

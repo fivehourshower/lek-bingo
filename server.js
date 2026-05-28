@@ -122,12 +122,6 @@ function handleMessage(c, msg) {
       broadcast();
       return;
 
-    case 'awardBingoTokens':
-      if (!c.username) return;
-      actions.awardBingoTokens(c.username, msg.amount);
-      broadcast();
-      return;
-
     case 'removeBoard':
       if (!c.username) return;
       actions.removeBoard(c.username, msg.boardIdx);
@@ -182,7 +176,7 @@ function handleMessage(c, msg) {
         case 'resetPredictions': actions.resetPredictions(); break;
         case 'broadcast':         actions.broadcast(args[0], args[1]); break;
         case 'clearBroadcast':    actions.clearBroadcast(); break;
-        case 'forceWinner':       actions.forceWinner(args[0]); break;
+        case 'forceWinner':       actions.awardBingoTokens(args[0]); break;
         case 'clearForcedWinners':actions.clearForcedWinners(); break;
         case 'adminToggleSquare': actions.adminToggleSquare(args[0], args[1], args[2]); break;
         default: return; // unknown
@@ -207,6 +201,12 @@ setInterval(() => {
   }
   if (changed) broadcast();
 }, 15_000);
+
+// Passive token drip: +1 token every 15 minutes per player.
+setInterval(() => {
+  const res = actions.grantPassiveTokens(Date.now());
+  if (res && res.changed) broadcast();
+}, 60_000);
 
 server.listen(PORT, () => {
   console.log(`Bingo server listening on :${PORT}`);

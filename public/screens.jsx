@@ -143,7 +143,6 @@ function BingoPlay({ state, session }) {
   const prevBingo = React.useRef(bingoCount);
   React.useEffect(() => {
     if (bingoCount > prevBingo.current) {
-      awardBingoTokens(10 * (bingoCount - prevBingo.current));
       setShowBingoToast(true);
       const t = setTimeout(() => setShowBingoToast(false), 4500);
       return () => clearTimeout(t);
@@ -316,7 +315,7 @@ function PredictionPoll({ state, canVote }) {
       </div>
 
       <p className="hint" style={{ marginTop: 10 }}>
-        Pick one winner. The bars show the current share of predictions and always sum to 100%.
+        Pick one winner. The bars show the current share of predictions.
       </p>
 
       {canVote && ownPlayer && (
@@ -485,8 +484,13 @@ function AdminPanel({ state }) {
     .map(p => ({
       player: p,
       lines: p.boards.reduce((acc, b, i) => acc.concat(detectBingos(b.claimed).map(l => ({ ...l, boardIdx: i }))), []),
+      confirmed: Math.max(0, Number(p.confirmedBingos) || 0),
     }))
-    .filter(x => x.lines.length > 0 && !state.forcedWinners.includes(x.player.username));
+    .map(x => ({
+      ...x,
+      pendingCount: Math.max(0, x.lines.length - x.confirmed),
+    }))
+    .filter(x => x.pendingCount > 0);
 
   // — Admin notification: when a player newly enters the bingo queue, ping + toast.
   const prevBingoUsers = React.useRef(null);
@@ -594,7 +598,7 @@ function AdminPanel({ state }) {
                   No BINGOs waiting. The hall watches in silence.
                 </div>
               )}
-              {bingoQueue.map(({ player, lines }) => (
+              {bingoQueue.map(({ player, lines, pendingCount }) => (
                 <div key={player.username} className="claim-row" style={{ flexWrap: 'wrap' }}>
                   <div className="who">
                     <span className={'dot' + (live.has(player.username) ? ' live' : '')} style={{ marginRight: 6 }}></span>
@@ -602,7 +606,7 @@ function AdminPanel({ state }) {
                   </div>
                   <div className="what">
                     <span className="pill good" style={{ marginRight: 8 }}>
-                      BINGO ×{lines.length}
+                      Pending BINGO ×{pendingCount}
                     </span>
                     <span style={{ fontSize: 12, color: 'var(--ink-faint)', fontFamily: 'var(--font-mono)' }}>
                       {lines.map(l => formatLine(l)).join(' · ')}
@@ -610,7 +614,7 @@ function AdminPanel({ state }) {
                   </div>
                   <div className="actions">
                     <button className="btn btn-sm" onClick={() => setInspecting(player.username)}>Inspect</button>
-                    <button className="btn btn-primary btn-sm" onClick={() => forceWinner(player.username)}>Confirm winner</button>
+                    <button className="btn btn-primary btn-sm" onClick={() => forceWinner(player.username)}>Confirm pending bingos</button>
                   </div>
                 </div>
               ))}
@@ -648,9 +652,7 @@ function AdminPanel({ state }) {
                       <div className="meta">
                         <span>{claims} claims · {p.boards.length} board{p.boards.length > 1 ? 's' : ''}</span>
                         <button className="btn btn-ghost btn-xs" onClick={() => setInspecting(p.username)}>Inspect</button>
-                        {!state.forcedWinners.includes(p.username) && (
-                          <button className="btn btn-ghost btn-xs" onClick={() => forceWinner(p.username)}>Mark winner</button>
-                        )}
+                        <button className="btn btn-ghost btn-xs" onClick={() => forceWinner(p.username)}>Confirm bingos</button>
                         <button className="btn btn-ghost btn-xs btn-danger" onClick={() => {
                           if (confirm(`Kick ${p.username}?`)) kickUser(p.username);
                         }}>Kick</button>
@@ -987,13 +989,9 @@ function InspectorModal({ player, isWinner, onClose }) {
       </div>
       <div className="divider"></div>
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
-        {!isWinner ? (
-          <button className="btn btn-primary" onClick={() => { forceWinner(player.username); onClose(); }}>
-            🏆 Confirm as winner
-          </button>
-        ) : (
-          <span className="pill good">🏆 Confirmed winner</span>
-        )}
+        <button className="btn btn-primary" onClick={() => { forceWinner(player.username); onClose(); }}>
+          {isWinner ? 'Confirm pending bingos' : '🏆 Confirm as winner'}
+        </button>
         <button className="btn btn-ghost btn-sm" onClick={onClose}>Done</button>
       </div>
     </Modal>
