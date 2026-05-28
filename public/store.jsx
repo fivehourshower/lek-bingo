@@ -258,6 +258,7 @@ function clearBroadcast()             { adminCall('clearBroadcast'); }
 function forceWinner(username)        { adminCall('forceWinner', username); }
 function clearForcedWinners()         { adminCall('clearForcedWinners'); }
 function votePrediction(optionIdx)    { send({ type: 'pollVote', optionIdx }); }
+function awardBingoTokens(amount = 10) { send({ type: 'awardBingoTokens', amount }); }
 
 // Heartbeat (keeps presence alive)
 function heartbeat() { send({ type: 'heartbeat' }); }
@@ -355,7 +356,7 @@ Object.assign(window, {
   adminLogin, adminLogout, resetGame, reissueBoards,
   updateTitle, updateBackground, updateTheme, setLocked, kickUser, unkickUser, setWordList,
   setPollOptions, resetPredictions,
-  broadcast, clearBroadcast, forceWinner, clearForcedWinners, votePrediction,
+  broadcast, clearBroadcast, forceWinner, clearForcedWinners, votePrediction, awardBingoTokens,
   heartbeat, disconnectOnUnload,
   // selectors
   getLiveUsernames, detectBingos,

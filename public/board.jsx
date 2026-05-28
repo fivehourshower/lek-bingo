@@ -1,5 +1,51 @@
 // board.jsx — Bingo board components: Square, Board, MiniBoard, LiveStrip.
 
+const POLL_ROYAL_THEMES = [
+  { name: 'amethyst', label: 'Amethyst', accent: '#8b5cf6', accentDark: '#5b21b6', accentSoft: 'rgba(139,92,246,.18)', text: '#f5efff' },
+  { name: 'ruby', label: 'Ruby', accent: '#dc2626', accentDark: '#991b1b', accentSoft: 'rgba(220,38,38,.18)', text: '#fff1f1' },
+  { name: 'sapphire', label: 'Sapphire', accent: '#2563eb', accentDark: '#1e3a8a', accentSoft: 'rgba(37,99,235,.18)', text: '#eef4ff' },
+  { name: 'emerald', label: 'Emerald', accent: '#16a34a', accentDark: '#166534', accentSoft: 'rgba(22,163,74,.18)', text: '#effdf3' },
+  { name: 'gold', label: 'Gold', accent: '#d97706', accentDark: '#92400e', accentSoft: 'rgba(217,119,6,.18)', text: '#fff7e8' },
+  { name: 'opal', label: 'Opal', accent: '#0f766e', accentDark: '#134e4a', accentSoft: 'rgba(15,118,110,.18)', text: '#e9fffd' },
+];
+
+function getPollTheme(index) {
+  return POLL_ROYAL_THEMES[index % POLL_ROYAL_THEMES.length];
+}
+
+function getPredictionSummary(state, username) {
+  if (!state || !state.poll || !username) return null;
+  const options = Array.isArray(state.poll.options) ? state.poll.options.slice(0, 6) : [];
+  const votes = state.poll.votes && typeof state.poll.votes === 'object' ? state.poll.votes : {};
+  const raw = votes[username];
+  const voteList = Array.isArray(raw) ? raw : (raw === undefined || raw === null ? [] : [raw]);
+  const filtered = voteList
+    .map(slot => Number(slot))
+    .filter(slot => Number.isInteger(slot) && slot >= 0 && slot < options.length);
+  if (filtered.length === 0) return null;
+
+  const counts = new Map();
+  let latest = filtered[filtered.length - 1];
+  filtered.forEach(slot => counts.set(slot, (counts.get(slot) || 0) + 1));
+
+  let bestIdx = latest;
+  let bestCount = 0;
+  for (const [idx, count] of counts.entries()) {
+    if (count > bestCount || (count === bestCount && idx === latest)) {
+      bestIdx = idx;
+      bestCount = count;
+    }
+  }
+
+  const theme = getPollTheme(bestIdx);
+  return {
+    optionIdx: bestIdx,
+    optionLabel: options[bestIdx] || `Option ${bestIdx + 1}`,
+    count: bestCount,
+    theme,
+  };
+}
+
 function Square({ word, claimed, pending, isFree, onClick, dimmed }) {
   const cls = [
     'cell',
@@ -109,10 +155,11 @@ function ReadOnlyBoard({ board, scale = 1, hideBingo = false }) {
   );
 }
 
-function MiniBoard({ player, isSelf, isLive, isConfirmedWinner, onClick }) {
+function MiniBoard({ player, state, isSelf, isLive, isConfirmedWinner, onClick }) {
   const boards = player.boards;
   const claimedCount = boards.reduce((s, b) => s + b.claimed.filter(Boolean).length, 0);
   const total = 25 * boards.length;
+  const prediction = getPredictionSummary(state, player.username);
   // Only reveal BINGO publicly once the host has confirmed it.
   const bingoLines = isConfirmedWinner
     ? boards.reduce((s, b) => s + detectBingos(b.claimed).length, 0)
@@ -126,9 +173,25 @@ function MiniBoard({ player, isSelf, isLive, isConfirmedWinner, onClick }) {
   return (
     <div className={cls} onClick={onClick}>
       <div className="mini-card-header">
-        <div className="row" style={{ gap: 6 }}>
+        <div className="row" style={{ gap: 6, minWidth: 0, flex: 1 }}>
           <span className={'dot' + (isLive ? ' live' : '')}></span>
-          <span className="name">{player.username}</span>
+          {prediction ? (
+            <span
+              className={'mini-pick-banner poll-theme-' + prediction.theme.name}
+              style={{
+                '--poll-accent': prediction.theme.accent,
+                '--poll-accent-dark': prediction.theme.accentDark,
+                '--poll-accent-soft': prediction.theme.accentSoft,
+                '--poll-accent-text': prediction.theme.text,
+              }}
+              title={`Top prediction: ${prediction.optionLabel}`}
+            >
+              <span className="name">{player.username}</span>
+              <span className="pick-label">{prediction.optionLabel}</span>
+            </span>
+          ) : (
+            <span className="name">{player.username}</span>
+          )}
         </div>
         <span className="count">{claimedCount}/{total}</span>
       </div>
@@ -207,6 +270,7 @@ function LiveStrip({ state, selfUsername, onClickPlayer }) {
           <MiniBoard
             key={p.username}
             player={p}
+            state={state}
             isSelf={p.username === selfUsername}
             isLive={live.has(p.username)}
             isConfirmedWinner={confirmed.has(p.username)}
@@ -218,4 +282,4 @@ function LiveStrip({ state, selfUsername, onClickPlayer }) {
   );
 }
 
-Object.assign(window, { Square, Board, ReadOnlyBoard, MiniBoard, LiveStrip, BingoLines });
+Object.assign(window, { Square, Board, ReadOnlyBoard, MiniBoard, LiveStrip, BingoLines, getPollTheme, getPredictionSummary });

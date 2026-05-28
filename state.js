@@ -15,6 +15,8 @@ const DEFAULT_TITLE = 'Lek finals #10 bingo';
 const DEFAULT_BG = 'https://gitlab.com/megawac1/lek-drafter/-/raw/master/img/background.png?ref_type=heads&inline=false';
 const DEFAULT_THEME = 'medieval';
 const DEFAULT_POLL_OPTIONS = Array.from({ length: 6 }, () => '');
+const STARTING_TOKENS = 10;
+const BINGO_REWARD_TOKENS = 10;
 
 const FALLBACK_WORDS = Array.from({ length: 30 }, (_, i) => `Sample square ${i + 1}`);
 
@@ -63,7 +65,7 @@ function emptyState() {
     broadcast: null,
     poll: emptyPoll(),
     forcedWinners: [],
-    players: {},          // [username]: { username, joinedAt, lastSeen, boards }
+    players: {},          // [username]: { username, joinedAt, lastSeen, boards, tokens }
     pendingClaims: [],    // unused with new flow; kept for shape compatibility
     kicked: [],
   };
@@ -83,9 +85,67 @@ function normalizePoll(poll) {
     next.options = poll.options.map(option => String(option || '').trim().slice(0, 80));
   }
   if (poll.votes && typeof poll.votes === 'object') {
-    next.votes = { ...poll.votes };
+    next.votes = Object.fromEntries(
+      Object.entries(poll.votes).map(([username, vote]) => {
+        const slots = Array.isArray(vote) ? vote : [vote];
+        return [
+          username,
+          slots
+            .map(slot => Number(slot))
+            .filter(slot => Number.isInteger(slot) && slot >= 0 && slot < 6),
+        ];
+      })
+    );
   }
   return next;
+}
+
+function normalizePlayer(player) {
+  if (!player || typeof player !== 'object') return player;
+  const tokensValue = Number(player.tokens);
+  return {
+    ...player,
+    tokens: Number.isFinite(tokensValue) ? Math.max(0, tokensValue) : STARTING_TOKENS,
+  };
+}
+
+function normalizePlayers(players) {
+  const next = {};
+  Object.entries(players || {}).forEach(([username, player]) => {
+    next[username] = normalizePlayer(player);
+  });
+  return next;
+}
+
+function countBingoLines(claimed) {
+  const lines = [];
+  for (let r = 0; r < 5; r++) {
+    if ([0, 1, 2, 3, 4].every(c => claimed[r * 5 + c])) lines.push({ type: 'row', index: r });
+  }
+  for (let c = 0; c < 5; c++) {
+    if ([0, 1, 2, 3, 4].every(r => claimed[r * 5 + c])) lines.push({ type: 'col', index: c });
+  }
+  if ([0, 6, 12, 18, 24].every(i => claimed[i])) lines.push({ type: 'diag', index: 0 });
+  if ([4, 8, 12, 16, 20].every(i => claimed[i])) lines.push({ type: 'diag', index: 1 });
+  return lines;
+}
+
+function countBingosForPlayer(player) {
+  if (!player || !Array.isArray(player.boards)) return 0;
+  return player.boards.reduce((sum, board) => sum + countBingoLines(board.claimed).length, 0);
+}
+
+function getVoteLimitForPlayer(username) {
+  const player = state.players[username];
+  if (!player) return 0;
+  return Math.max(0, Number(player.tokens) || 0);
+}
+
+function adjustPlayerTokens(username, delta) {
+  const player = state.players[username];
+  if (!player) return false;
+  player.tokens = Math.max(0, (Number(player.tokens) || 0) + delta);
+  return true;
 }
 
 function makeBoard(state) {
@@ -234,6 +294,7 @@ function init() {
   initDb();
   state = loadState() || emptyState();
   state.poll = normalizePoll(state.poll);
+  state.players = normalizePlayers(state.players);
   transientBroadcast = null;
   if (sanitizeLoadedBroadcast()) persistNow(state);
   // Always overwrite the word pool from disk on boot (so admins editing the
@@ -263,6 +324,7 @@ const actions = {
     const existing = state.players[username];
     if (existing) {
       existing.lastSeen = Date.now();
+      if (existing.tokens === undefined || existing.tokens === null) existing.tokens = STARTING_TOKENS;
       if (boardCount === 2 && existing.boards.length < 2) existing.boards.push(makeBoard(state));
     } else {
       state.players[username] = {
@@ -270,6 +332,7 @@ const actions = {
         joinedAt: Date.now(),
         lastSeen: Date.now(),
         boards: Array.from({ length: boardCount }, () => makeBoard(state)),
+        tokens: STARTING_TOKENS,
       };
     }
     persist();
@@ -314,6 +377,12 @@ const actions = {
     next.centerSquare = state.centerSquare;
     next.poll = normalizePoll(state.poll);
     next.poll.votes = {};
+    Object.entries(state.players).forEach(([username, player]) => {
+      next.players[username] = {
+        ...player,
+        tokens: Math.max(0, Number(player.tokens) || 0),
+      };
+    });
     state = next;
     transientBroadcast = null;
     clearBroadcastTimer();
@@ -384,8 +453,22 @@ const actions = {
 
   resetPredictions() {
     state.poll = normalizePoll(state.poll);
+    Object.entries(state.poll.votes).forEach(([username, votes]) => {
+      adjustPlayerTokens(username, Array.isArray(votes) ? votes.length : 0);
+    });
     state.poll.votes = {};
     persist();
+  },
+
+  awardBingoTokens(username, amount = BINGO_REWARD_TOKENS) {
+    username = String(username || '').trim();
+    const player = state.players[username];
+    if (!player) return { error: 'Player required' };
+    const reward = Math.max(0, Number(amount) || 0);
+    if (!reward) return { ok: true };
+    adjustPlayerTokens(username, reward);
+    persist();
+    return { ok: true };
   },
 
   votePrediction(username, optionIdx) {
@@ -400,7 +483,19 @@ const actions = {
     if (!state.poll.options[idx]) {
       return { error: 'Poll option is not configured' };
     }
-    state.poll.votes[username] = idx;
+    const currentVotes = Array.isArray(state.poll.votes[username])
+      ? state.poll.votes[username].slice()
+      : (state.poll.votes[username] === undefined || state.poll.votes[username] === null ? [] : [state.poll.votes[username]]);
+    const normalizedVotes = currentVotes
+      .map(slot => Number(slot))
+      .filter(slot => Number.isInteger(slot) && slot >= 0 && slot < state.poll.options.length);
+
+    const tokens = getVoteLimitForPlayer(username);
+    if (tokens <= 0) return { error: 'No tokens left' };
+    normalizedVotes.push(idx);
+    adjustPlayerTokens(username, -1);
+
+    state.poll.votes[username] = normalizedVotes;
     persist();
     return { ok: true };
   },

@@ -122,6 +122,12 @@ function handleMessage(c, msg) {
       broadcast();
       return;
 
+    case 'awardBingoTokens':
+      if (!c.username) return;
+      actions.awardBingoTokens(c.username, msg.amount);
+      broadcast();
+      return;
+
     case 'removeBoard':
       if (!c.username) return;
       actions.removeBoard(c.username, msg.boardIdx);

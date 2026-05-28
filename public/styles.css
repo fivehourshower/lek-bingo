@@ -250,17 +250,17 @@ body::before {
   width: 100%;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--panel-edge);
-  background: var(--panel-bg-2);
+  border: 1px solid color-mix(in oklch, var(--poll-accent, var(--accent)) 35%, var(--panel-edge));
+  background: linear-gradient(135deg, var(--poll-accent-soft, rgba(255,255,255,.08)), var(--panel-bg-2));
   color: var(--ink);
   cursor: pointer;
   text-align: left;
   transition: transform .15s var(--ease), background .15s var(--ease), border-color .15s var(--ease);
 }
-.poll-option:hover { transform: translateY(-1px); background: var(--panel-bg); }
+.poll-option:hover { transform: translateY(-1px); background: linear-gradient(135deg, var(--poll-accent-soft, rgba(255,255,255,.10)), var(--panel-bg)); }
 .poll-option.selected {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  border-color: var(--poll-accent, var(--accent));
+  box-shadow: 0 0 0 1px var(--poll-accent, var(--accent)), 0 0 20px color-mix(in oklch, var(--poll-accent, var(--accent)) 20%, transparent);
 }
 .poll-option:disabled { opacity: .68; cursor: not-allowed; transform: none; }
 .poll-option-label {
@@ -268,6 +268,14 @@ body::before {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: .03em;
+}
+.poll-theme-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--poll-accent, var(--accent)), var(--poll-accent-dark, var(--accent-strong)));
+  box-shadow: 0 0 10px color-mix(in oklch, var(--poll-accent, var(--accent)) 40%, transparent);
+  flex: 0 0 auto;
 }
 .poll-chart {
   display: flex;
@@ -292,8 +300,8 @@ body::before {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--accent);
-  color: var(--accent-on);
+  background: linear-gradient(135deg, var(--poll-accent, var(--accent)), var(--poll-accent-dark, var(--accent-strong)));
+  color: var(--poll-accent-text, var(--accent-on));
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -315,14 +323,14 @@ body::before {
   position: relative;
   height: 22px;
   border-radius: 999px;
-  background: var(--panel-bg-2);
-  border: 1px solid var(--panel-edge);
+  background: linear-gradient(90deg, var(--poll-accent-soft, rgba(255,255,255,.08)), var(--panel-bg-2));
+  border: 1px solid color-mix(in oklch, var(--poll-accent, var(--accent)) 35%, var(--panel-edge));
   overflow: hidden;
 }
 .poll-bar-fill {
   position: absolute;
   inset: 0 auto 0 0;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+  background: linear-gradient(90deg, var(--poll-accent, var(--accent)), var(--poll-accent-dark, var(--accent-strong)));
   border-radius: 999px;
 }
 .poll-bar-text {
@@ -338,6 +346,31 @@ body::before {
   color: var(--accent-on);
   mix-blend-mode: normal;
   pointer-events: none;
+}
+.mini-pick-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  padding: 4px 10px 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--poll-accent, var(--accent)), var(--poll-accent-dark, var(--accent-strong)));
+  color: var(--poll-accent-text, var(--accent-on));
+  box-shadow: 0 0 0 1px color-mix(in oklch, var(--poll-accent, var(--accent)) 50%, transparent), 0 4px 16px rgba(0,0,0,.18);
+}
+.mini-pick-banner .name {
+  font-weight: 800;
+  color: inherit;
+  max-width: 88px;
+}
+.mini-pick-banner .pick-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .9;
+  white-space: nowrap;
 }
 
 /* ============ Bingo board ============ */
