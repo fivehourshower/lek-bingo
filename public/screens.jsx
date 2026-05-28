@@ -256,6 +256,7 @@ function BingoPlay({ state, session }) {
           🎉 BINGO! 🎉
         </div>
       )}
+      </div>
     </div>
   );
 }
