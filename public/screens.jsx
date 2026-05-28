@@ -43,80 +43,86 @@ function Register({ state, onAdminClick }) {
 
   return (
     <div className="shell">
-      <div className="shell-main">
-        <div className="panel ornate panel-pad register-card">
-          <div className="row" style={{ justifyContent: 'center', marginBottom: 14 }}>
-            <span className="pill warn" style={{
-              fontFamily: 'var(--font-mono)', textTransform: 'uppercase'
-            }}>
-              {state.locked ? '🔒 Room locked' : 'Sign in to play'}
-            </span>
-          </div>
-          <h1>Take a seat</h1>
-          <p className="lead">
-            Pick a name, claim squares as you watch the drama unfold, and follow other spectators' boards live below.
-          </p>
-
-          <form onSubmit={submit} className="col" style={{ gap: 16 }}>
-            <input
-              className="input input-lg"
-              placeholder="Your handle"
-              value={name}
-              onChange={e => { setName(e.target.value); setErr(''); }}
-              autoFocus
-              maxLength={20}
-            />
-            <div className="row" style={{ justifyContent: 'center', gap: 10 }}>
-              <span className="h-soft" style={{ fontSize: 13 }}>Boards:</span>
-              <div className="row" style={{ gap: 4 }}>
-                {[1, 2].map(n => (
-                  <button
-                    key={n}
-                    type="button"
-                    className={'btn btn-sm ' + (boardCount === n ? 'btn-primary' : 'btn-ghost')}
-                    onClick={() => setBoardCount(n)}
-                  >
-                    {n}
-                  </button>
-                ))}
-              </div>
-            </div>
-            {err && <div className="pill bad" style={{ alignSelf: 'center' }}>{err}</div>}
-            <button type="submit" className="btn btn-primary" style={{ fontSize: 16, padding: '14px 24px' }}>
-              Enter the hall
-            </button>
-          </form>
-
-          {knownUsers.length > 0 && (
-            <div style={{ marginTop: 20 }}>
-              <div className="h-faint" style={{
-                fontSize: 11, letterSpacing: '.18em',
-                textTransform: 'uppercase', textAlign: 'center', marginBottom: 8
+      <div className="play-layout">
+        <div className="shell-main">
+          <div className="panel ornate panel-pad register-card">
+            <div className="row" style={{ justifyContent: 'center', marginBottom: 14 }}>
+              <span className="pill warn" style={{
+                fontFamily: 'var(--font-mono)', textTransform: 'uppercase'
               }}>
-                Resume as
-              </div>
-              <div className="row wrap" style={{ justifyContent: 'center', gap: 6 }}>
-                {knownUsers.slice(0, 6).map(u => (
-                  <button
-                    key={u}
-                    className="btn btn-ghost btn-xs"
-                    onClick={() => { setName(u); }}
-                  >
-                    {u}
-                  </button>
-                ))}
-              </div>
+                {state.locked ? '🔒 Room locked' : 'Sign in to play'}
+              </span>
             </div>
-          )}
+            <h1>Take a seat</h1>
+            <p className="lead">
+              Pick a name, claim squares as you watch the drama unfold, and follow other spectators' boards live below.
+            </p>
 
-          <div className="divider"></div>
-          <button className="btn btn-ghost btn-sm" onClick={onAdminClick} style={{ width: '100%' }}>
-            Admin sign-in
-          </button>
+            <form onSubmit={submit} className="col" style={{ gap: 16 }}>
+              <input
+                className="input input-lg"
+                placeholder="Your handle"
+                value={name}
+                onChange={e => { setName(e.target.value); setErr(''); }}
+                autoFocus
+                maxLength={20}
+              />
+              <div className="row" style={{ justifyContent: 'center', gap: 10 }}>
+                <span className="h-soft" style={{ fontSize: 13 }}>Boards:</span>
+                <div className="row" style={{ gap: 4 }}>
+                  {[1, 2].map(n => (
+                    <button
+                      key={n}
+                      type="button"
+                      className={'btn btn-sm ' + (boardCount === n ? 'btn-primary' : 'btn-ghost')}
+                      onClick={() => setBoardCount(n)}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {err && <div className="pill bad" style={{ alignSelf: 'center' }}>{err}</div>}
+              <button type="submit" className="btn btn-primary" style={{ fontSize: 16, padding: '14px 24px' }}>
+                Enter the hall
+              </button>
+            </form>
+
+            {knownUsers.length > 0 && (
+              <div style={{ marginTop: 20 }}>
+                <div className="h-faint" style={{
+                  fontSize: 11, letterSpacing: '.18em',
+                  textTransform: 'uppercase', textAlign: 'center', marginBottom: 8
+                }}>
+                  Resume as
+                </div>
+                <div className="row wrap" style={{ justifyContent: 'center', gap: 6 }}>
+                  {knownUsers.slice(0, 6).map(u => (
+                    <button
+                      key={u}
+                      className="btn btn-ghost btn-xs"
+                      onClick={() => { setName(u); }}
+                    >
+                      {u}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="divider"></div>
+            <button className="btn btn-ghost btn-sm" onClick={onAdminClick} style={{ width: '100%' }}>
+              Admin sign-in
+            </button>
+          </div>
         </div>
-      </div>
-      <div>
-        <LiveStrip state={state} selfUsername={null} />
+
+        <div className="shell-rail">
+          <PredictionPoll state={state} canVote={false} />
+          <div style={{ marginTop: 16 }}>
+            <LiveStrip state={state} selfUsername={null} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -161,66 +167,70 @@ function BingoPlay({ state, session }) {
 
   return (
     <div className="shell">
-      <div className="shell-main">
-        <div className="row wrap" style={{
-          justifyContent: 'space-between', width: '100%', maxWidth: 1200,
-          margin: '0 auto 14px', gap: 10,
-        }}>
-          <div className="row" style={{ gap: 12 }}>
-            <span className="pill good">
-              Playing as <strong style={{ marginLeft: 4 }}>{session.username}</strong>
-            </span>
-            {bingoCount > 0 && !isWinner && (
-              <span className="pill warn">BINGO ×{bingoCount} · awaiting host confirmation</span>
-            )}
-            {isWinner && (
-              <span className="pill good">🏆 Winner confirmed</span>
-            )}
-          </div>
-          <div className="row" style={{ gap: 8 }}>
-            {me.boards.length < 2 && (
-              <button className="btn btn-sm" onClick={requestSecondBoard}>
-                + Second board
+      <div className="play-layout">
+        <div className="shell-main">
+          <div className="row wrap" style={{
+            justifyContent: 'space-between', width: '100%', maxWidth: 1200,
+            margin: '0 auto 14px', gap: 10,
+          }}>
+            <div className="row" style={{ gap: 12 }}>
+              <span className="pill good">
+                Playing as <strong style={{ marginLeft: 4 }}>{session.username}</strong>
+              </span>
+              {bingoCount > 0 && !isWinner && (
+                <span className="pill warn">BINGO ×{bingoCount} · awaiting host confirmation</span>
+              )}
+              {isWinner && (
+                <span className="pill good">🏆 Winner confirmed</span>
+              )}
+            </div>
+            <div className="row" style={{ gap: 8 }}>
+              {me.boards.length < 2 && (
+                <button className="btn btn-sm" onClick={requestSecondBoard}>
+                  + Second board
+                </button>
+              )}
+              <button className="btn btn-ghost btn-sm" onClick={logout}>
+                Leave game
               </button>
-            )}
-            <button className="btn btn-ghost btn-sm" onClick={logout}>
-              Leave game
-            </button>
+            </div>
+          </div>
+
+          <div className="boards-wrap">
+            {me.boards.map((b, idx) => (
+              <Board
+                key={b.id}
+                board={b}
+                isOwn={true}
+                label={me.boards.length > 1 ? `Board ${idx + 1}` : 'Your board'}
+                onSquareClick={(sq) => clickSquare(idx, sq)}
+                canRemove={me.boards.length > 1}
+                onRemove={() => {
+                  if (confirm('Remove this board? Your claims on it will be lost.')) {
+                    removeBoard(idx);
+                  }
+                }}
+              />
+            ))}
+          </div>
+
+          <div style={{ marginTop: 22 }}>
+            <span className="floating-hint">
+              Tap a square to claim · Tap again to unclaim · Host confirms BINGOs
+            </span>
           </div>
         </div>
 
-        <div className="boards-wrap">
-          {me.boards.map((b, idx) => (
-            <Board
-              key={b.id}
-              board={b}
-              isOwn={true}
-              label={me.boards.length > 1 ? `Board ${idx + 1}` : 'Your board'}
-              onSquareClick={(sq) => clickSquare(idx, sq)}
-              canRemove={me.boards.length > 1}
-              onRemove={() => {
-                if (confirm('Remove this board? Your claims on it will be lost.')) {
-                  removeBoard(idx);
-                }
-              }}
+        <div className="shell-rail">
+          <PredictionPoll state={state} canVote={true} />
+          <div style={{ marginTop: 16 }}>
+            <LiveStrip
+              state={state}
+              selfUsername={session.username}
+              onClickPlayer={(p) => setExpanded(p)}
             />
-          ))}
+          </div>
         </div>
-
-        <div style={{ marginTop: 22 }}>
-          <span className="floating-hint">
-            Tap a square to claim · Tap again to unclaim · Host confirms BINGOs
-          </span>
-        </div>
-      </div>
-
-      <div>
-        <LiveStrip
-          state={state}
-          selfUsername={session.username}
-          onClickPlayer={(p) => setExpanded(p)}
-        />
-      </div>
 
       {expanded && (
         <Modal title={`${expanded.username}'s board${expanded.boards.length > 1 ? 's' : ''}`} onClose={() => setExpanded(null)} wide>
@@ -243,6 +253,104 @@ function BingoPlay({ state, session }) {
           fontSize: 22, letterSpacing: '.12em'
         }}>
           🎉 BINGO! 🎉
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PredictionPoll({ state, canVote }) {
+  const session = useSession();
+  const poll = state.poll || { options: ['', '', '', '', '', ''], votes: {} };
+  const options = Array.isArray(poll.options) ? poll.options.slice(0, 6) : [];
+  while (options.length < 6) options.push('');
+  const votes = poll.votes && typeof poll.votes === 'object' ? poll.votes : {};
+  const counts = Array.from({ length: 6 }, () => 0);
+
+  Object.values(votes).forEach(vote => {
+    const idx = Number(vote);
+    if (Number.isInteger(idx) && idx >= 0 && idx < counts.length && options[idx]) counts[idx] += 1;
+  });
+
+  const totalVotes = counts.reduce((sum, count) => sum + count, 0);
+  const shares = totalVotes === 0 ? counts.map(() => 0) : (() => {
+    const exact = counts.map(count => (count * 100) / totalVotes);
+    const whole = exact.map(value => Math.floor(value));
+    let remainder = 100 - whole.reduce((sum, value) => sum + value, 0);
+    const order = exact.map((value, idx) => ({ idx, fraction: value - whole[idx], count: counts[idx] }))
+      .sort((a, b) => b.fraction - a.fraction || b.count - a.count || a.idx - b.idx);
+    const next = whole.slice();
+    for (let i = 0; i < remainder; i++) {
+      next[order[i % order.length].idx] += 1;
+    }
+    return next;
+  })();
+  const myVote = session.username ? votes[session.username] : undefined;
+  const configured = options.every(option => !!String(option).trim());
+
+  const vote = (idx) => {
+    if (!canVote || !configured) return;
+    votePrediction(idx);
+  };
+
+  return (
+    <div className="panel panel-pad ornate poll-card">
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
+        <div>
+          <div className="floating-hint" style={{ marginBottom: 10 }}>Prediction poll</div>
+          <h2 style={{ margin: 0 }}>Who wins?</h2>
+        </div>
+        <span className="pill" style={{ alignSelf: 'flex-start' }}>{totalVotes} vote{totalVotes === 1 ? '' : 's'}</span>
+      </div>
+
+      <p className="hint" style={{ marginTop: 10 }}>
+        Pick one winner. The bars show the current share of predictions and always sum to 100%.
+      </p>
+
+      {!configured && (
+        <div className="panel panel-pad" style={{ background: 'var(--panel-bg-2)', marginTop: 10 }}>
+          <div className="h-faint" style={{ fontSize: 11, letterSpacing: '.14em', textTransform: 'uppercase' }}>Not configured yet</div>
+          <div style={{ marginTop: 6 }}>An admin needs to fill in all six poll options before voting opens.</div>
+        </div>
+      )}
+
+      <div className="poll-options" style={{ marginTop: 12 }}>
+        {options.map((option, idx) => (
+          <button
+            key={idx}
+            type="button"
+            className={'poll-option' + (myVote === idx ? ' selected' : '')}
+            onClick={() => vote(idx)}
+            disabled={!canVote || !configured}
+          >
+            <span className="poll-option-label">{option || `Option ${idx + 1}`}</span>
+            <span className="pill" style={{ marginLeft: 'auto' }}>{shares[idx]}%</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="poll-chart" style={{ marginTop: 14 }}>
+        {options.map((option, idx) => (
+          <div className="poll-row" key={idx}>
+            <div className="row" style={{ justifyContent: 'space-between', gap: 10, marginBottom: 6 }}>
+              <div className="poll-row-label">
+                <span className="poll-index">{idx + 1}</span>
+                <span className="poll-option-name">{option || `Option ${idx + 1}`}</span>
+                {myVote === idx && <span className="pill good">Your pick</span>}
+              </div>
+              <div className="poll-row-meta">{counts[idx]} vote{counts[idx] === 1 ? '' : 's'}</div>
+            </div>
+            <div className="poll-bar-track">
+              <div className="poll-bar-fill" style={{ width: `${shares[idx]}%` }} />
+              <div className="poll-bar-text">{shares[idx]}%</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {!canVote && (
+        <div className="hint" style={{ marginTop: 12 }}>
+          Sign in to cast a prediction.
         </div>
       )}
     </div>
@@ -297,9 +405,22 @@ function AdminPanel({ state }) {
   const [wordsErr, setWordsErr] = React.useState('');
   const [wordsSaved, setWordsSaved] = React.useState(false);
   const [bcastMsg, setBcastMsg] = React.useState('');
+  const [bcastPersistFor, setBcastPersistFor] = React.useState('none');
+  const [pollOptions, setPollOptionsLocal] = React.useState(() => {
+    const options = (state.poll && Array.isArray(state.poll.options) ? state.poll.options : []).slice(0, 6);
+    while (options.length < 6) options.push('');
+    return options;
+  });
+  const [pollErr, setPollErr] = React.useState('');
+  const [pollSaved, setPollSaved] = React.useState(false);
 
   React.useEffect(() => { setTitle(state.title); }, [state.title]);
   React.useEffect(() => { setBg(state.background); }, [state.background]);
+  React.useEffect(() => {
+    const options = (state.poll && Array.isArray(state.poll.options) ? state.poll.options : []).slice(0, 6);
+    while (options.length < 6) options.push('');
+    setPollOptionsLocal(options);
+  }, [(state.poll && Array.isArray(state.poll.options) ? state.poll.options.join('|') : '')]);
 
   const live = getLiveUsernames(state);
   const players = Object.values(state.players);
@@ -358,10 +479,23 @@ function AdminPanel({ state }) {
     { id: 'bingos',   label: 'Confirm BINGO', badge: bingoQueue.length || null },
     { id: 'players',  label: 'Players',       badge: players.length || null },
     { id: 'room',     label: 'Room',          badge: null },
+    { id: 'poll',     label: 'Prediction poll', badge: null },
     { id: 'words',    label: 'Word list',     badge: null },
     { id: 'broadcast',label: 'Broadcast',     badge: null },
     { id: 'danger',   label: 'Reset / End',   badge: null },
   ];
+
+  const savePoll = () => {
+    const normalized = pollOptions.map(option => String(option || '').trim()).slice(0, 6);
+    if (normalized.some(option => !option)) {
+      setPollErr('Fill in all 6 options before saving.');
+      return;
+    }
+    setPollErr('');
+    setPollOptions(normalized);
+    setPollSaved(true);
+    setTimeout(() => setPollSaved(false), 2000);
+  };
 
   return (
     <div className="shell">
@@ -548,6 +682,55 @@ function AdminPanel({ state }) {
             </div>
           )}
 
+          {tab === 'poll' && (
+            <div className="admin-section">
+              <h2>Prediction poll</h2>
+              <p className="hint">
+                Set six winner options for the right-side poll. Voting is one choice per player, and the bar chart updates live.
+              </p>
+
+              <div className="panel panel-pad" style={{ background: 'var(--panel-bg-2)' }}>
+                <div className="col" style={{ gap: 10 }}>
+                  {pollOptions.map((option, idx) => (
+                    <div key={idx} className="field-row">
+                      <span className="poll-index">{idx + 1}</span>
+                      <input
+                        className="input"
+                        value={option}
+                        onChange={e => {
+                          const next = pollOptions.slice();
+                          next[idx] = e.target.value;
+                          setPollOptionsLocal(next);
+                          setPollErr('');
+                        }}
+                        placeholder={`Option ${idx + 1}`}
+                        maxLength={80}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {pollErr && <div className="pill bad" style={{ alignSelf: 'flex-start', marginTop: 10 }}>{pollErr}</div>}
+                {pollSaved && <div className="pill good" style={{ alignSelf: 'flex-start', marginTop: 10 }}>Saved ✓</div>}
+
+                <div className="row" style={{ gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+                  <button className="btn btn-primary btn-sm" onClick={savePoll}>Save poll options</button>
+                  <button className="btn btn-ghost btn-sm" onClick={() => {
+                    if (confirm('Reset all predictions? This clears every user vote.')) resetPredictions();
+                  }}>
+                    Reset predictions
+                  </button>
+                </div>
+
+                <div className="hint" style={{ marginTop: 10, marginBottom: 0 }}>
+                  Changing the option labels does not clear votes automatically. Use Reset predictions for a fresh round.
+                </div>
+              </div>
+
+              <PredictionPoll state={state} canVote={false} />
+            </div>
+          )}
+
           {tab === 'words' && (
             <div className="admin-section">
               <h2>Word list (bingo_words.json)</h2>
@@ -584,11 +767,24 @@ function AdminPanel({ state }) {
                 placeholder="e.g. Scheduled break — back in 10 minutes"
                 maxLength={200}
               />
+              <div className="field-row" style={{ marginTop: 10 }}>
+                <label className="h-soft" style={{ fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase' }}>
+                  Persist for
+                </label>
+                <select className="input" value={bcastPersistFor} onChange={e => setBcastPersistFor(e.target.value)}>
+                  <option value="none">Don't persist</option>
+                  <option value="1m">1 minute</option>
+                  <option value="5m">5 minutes</option>
+                  <option value="10m">10 minutes</option>
+                  <option value="30m">30 minutes</option>
+                  <option value="forever">Forever</option>
+                </select>
+              </div>
               <div className="row" style={{ gap: 8 }}>
                 <button
                   className="btn btn-primary btn-sm"
                   disabled={!bcastMsg.trim()}
-                  onClick={() => { broadcast(bcastMsg.trim()); setBcastMsg(''); }}
+                  onClick={() => { broadcast(bcastMsg.trim(), bcastPersistFor); setBcastMsg(''); }}
                 >
                   Send broadcast
                 </button>
@@ -603,6 +799,13 @@ function AdminPanel({ state }) {
                   <div className="h-faint" style={{ fontSize: 10, letterSpacing: '.16em', textTransform: 'uppercase', marginBottom: 6 }}>Currently broadcasting</div>
                   <div style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 16 }}>
                     "{state.broadcast.message}"
+                  </div>
+                  <div className="pill" style={{ alignSelf: 'flex-start', marginTop: 10 }}>
+                    {state.broadcast.persistFor === 'forever'
+                      ? 'Persists forever'
+                      : state.broadcast.persistFor === 'none'
+                        ? 'Session only'
+                        : `Persists for ${state.broadcast.persistFor}`}
                   </div>
                 </div>
               )}

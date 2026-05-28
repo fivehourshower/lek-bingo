@@ -34,6 +34,7 @@ let _state = {
   centerSquare: 'FREE',
   wordPool: [],
   broadcast: null,
+  poll: { options: ['', '', '', '', '', ''], votes: {} },
   forcedWinners: [],
   players: {},
   presence: {},
@@ -246,14 +247,17 @@ function updateTheme(t)               { adminCall('updateTheme', t); }
 function setLocked(v)                 { adminCall('setLocked', v); }
 function kickUser(u)                  { adminCall('kickUser', u); }
 function unkickUser(u)                { adminCall('unkickUser', u); }
+function setPollOptions(options)      { adminCall('setPollOptions', options); }
+function resetPredictions()           { adminCall('resetPredictions'); }
 async function setWordList(parsed) {
   if (!send({ type: 'admin', action: 'setWordList', args: [parsed] })) return { error: 'Not connected.' };
   return await awaitReply('words');
 }
-function broadcast(message)           { adminCall('broadcast', message); }
+function broadcast(message, persistFor = 'none') { adminCall('broadcast', message, persistFor); }
 function clearBroadcast()             { adminCall('clearBroadcast'); }
 function forceWinner(username)        { adminCall('forceWinner', username); }
 function clearForcedWinners()         { adminCall('clearForcedWinners'); }
+function votePrediction(optionIdx)    { send({ type: 'pollVote', optionIdx }); }
 
 // Heartbeat (keeps presence alive)
 function heartbeat() { send({ type: 'heartbeat' }); }
@@ -350,7 +354,8 @@ Object.assign(window, {
   clickSquare, adminToggleSquare,
   adminLogin, adminLogout, resetGame, reissueBoards,
   updateTitle, updateBackground, updateTheme, setLocked, kickUser, unkickUser, setWordList,
-  broadcast, clearBroadcast, forceWinner, clearForcedWinners,
+  setPollOptions, resetPredictions,
+  broadcast, clearBroadcast, forceWinner, clearForcedWinners, votePrediction,
   heartbeat, disconnectOnUnload,
   // selectors
   getLiveUsernames, detectBingos,

@@ -83,6 +83,8 @@ Two ways:
 - **`public/`** — vanilla React app served as-is, transpiled in the browser via
   Babel Standalone. No build step. Same components as the design prototype; only
   `store.jsx` differs (WebSocket-backed instead of localStorage).
+- Broadcast banners default to session-only and can optionally persist for 1, 5,
+  10, or 30 minutes, or forever.
 
 ## Limits / notes
 

@@ -14,6 +14,7 @@ const WORDS_FILE = process.env.WORDS_FILE || path.join(__dirname, 'bingo_words.j
 const DEFAULT_TITLE = 'Lek finals #10 bingo';
 const DEFAULT_BG = 'https://gitlab.com/megawac1/lek-drafter/-/raw/master/img/background.png?ref_type=heads&inline=false';
 const DEFAULT_THEME = 'medieval';
+const DEFAULT_POLL_OPTIONS = Array.from({ length: 6 }, () => '');
 
 const FALLBACK_WORDS = Array.from({ length: 30 }, (_, i) => `Sample square ${i + 1}`);
 
@@ -60,11 +61,31 @@ function emptyState() {
     centerSquare: (w.center_square === null || w.center_square === undefined || w.center_square === '') ? null : w.center_square,
     wordPool: w.words.slice(),
     broadcast: null,
+    poll: emptyPoll(),
     forcedWinners: [],
     players: {},          // [username]: { username, joinedAt, lastSeen, boards }
     pendingClaims: [],    // unused with new flow; kept for shape compatibility
     kicked: [],
   };
+}
+
+function emptyPoll() {
+  return {
+    options: DEFAULT_POLL_OPTIONS.slice(),
+    votes: {},
+  };
+}
+
+function normalizePoll(poll) {
+  const next = emptyPoll();
+  if (!poll || typeof poll !== 'object') return next;
+  if (Array.isArray(poll.options) && poll.options.length === 6) {
+    next.options = poll.options.map(option => String(option || '').trim().slice(0, 80));
+  }
+  if (poll.votes && typeof poll.votes === 'object') {
+    next.votes = { ...poll.votes };
+  }
+  return next;
 }
 
 function makeBoard(state) {
@@ -93,6 +114,16 @@ let state;
 let db;
 let getStateRowStmt;
 let upsertStateStmt;
+let transientBroadcast = null;
+let broadcastTimer = null;
+
+const BROADCAST_DURATIONS = {
+  '1m': 60_000,
+  '5m': 5 * 60_000,
+  '10m': 10 * 60_000,
+  '30m': 30 * 60_000,
+  forever: null,
+};
 
 function initDb() {
   if (db) return;
@@ -134,6 +165,41 @@ function persistNow(nextState) {
   }
 }
 
+function clearBroadcastTimer() {
+  if (!broadcastTimer) return;
+  clearTimeout(broadcastTimer);
+  broadcastTimer = null;
+}
+
+function scheduleBroadcastExpiration(expiresAt) {
+  clearBroadcastTimer();
+  if (!expiresAt) return;
+  const delay = Math.max(0, expiresAt - Date.now());
+  broadcastTimer = setTimeout(() => {
+    broadcastTimer = null;
+    actions.clearBroadcast();
+  }, delay);
+}
+
+function activeBroadcast() {
+  return transientBroadcast || state.broadcast || null;
+}
+
+function isBroadcastExpired(broadcast) {
+  return !!(broadcast && broadcast.expiresAt && Date.now() >= broadcast.expiresAt);
+}
+
+function sanitizeLoadedBroadcast() {
+  if (!state.broadcast) return false;
+  if (isBroadcastExpired(state.broadcast)) {
+    state.broadcast = null;
+    clearBroadcastTimer();
+    return true;
+  }
+  scheduleBroadcastExpiration(state.broadcast.expiresAt);
+  return false;
+}
+
 function loadState() {
   try {
     initDb();
@@ -167,6 +233,9 @@ function persist() {
 function init() {
   initDb();
   state = loadState() || emptyState();
+  state.poll = normalizePoll(state.poll);
+  transientBroadcast = null;
+  if (sanitizeLoadedBroadcast()) persistNow(state);
   // Always overwrite the word pool from disk on boot (so admins editing the
   // mounted JSON outside the UI take effect on restart).
   const w = loadWordsFromDisk();
@@ -179,7 +248,7 @@ function getState() { return state; }
 // ---- presence is derived from active connections, not stored ----
 // The server passes a `presence` object into the snapshot before broadcasting.
 function snapshotFor(presence) {
-  return { ...state, presence };
+  return { ...state, broadcast: activeBroadcast(), presence };
 }
 
 // ---- actions ----
@@ -243,7 +312,11 @@ const actions = {
     next.theme = state.theme;
     next.wordPool = state.wordPool;
     next.centerSquare = state.centerSquare;
+    next.poll = normalizePoll(state.poll);
+    next.poll.votes = {};
     state = next;
+    transientBroadcast = null;
+    clearBroadcastTimer();
     persist();
   },
 
@@ -294,12 +367,70 @@ const actions = {
     persist();
     return { ok: true };
   },
-  broadcast(message) {
-    state.broadcast = { id: uid(), message: String(message || '').slice(0, 200), ts: Date.now() };
+
+  setPollOptions(options) {
+    if (!Array.isArray(options) || options.length !== 6) {
+      return { error: 'poll options must be an array of 6 strings' };
+    }
+    const normalized = options.map(option => String(option || '').trim().slice(0, 80));
+    if (normalized.some(option => !option)) {
+      return { error: 'all 6 poll options are required' };
+    }
+    state.poll = normalizePoll(state.poll);
+    state.poll.options = normalized;
+    persist();
+    return { ok: true };
+  },
+
+  resetPredictions() {
+    state.poll = normalizePoll(state.poll);
+    state.poll.votes = {};
     persist();
   },
+
+  votePrediction(username, optionIdx) {
+    username = String(username || '').trim();
+    const p = state.players[username];
+    if (!p) return { error: 'Player required' };
+    state.poll = normalizePoll(state.poll);
+    const idx = Number(optionIdx);
+    if (!Number.isInteger(idx) || idx < 0 || idx >= state.poll.options.length) {
+      return { error: 'Invalid poll option' };
+    }
+    if (!state.poll.options[idx]) {
+      return { error: 'Poll option is not configured' };
+    }
+    state.poll.votes[username] = idx;
+    persist();
+    return { ok: true };
+  },
+
+  broadcast(message, persistFor = 'none') {
+    const durationMs = BROADCAST_DURATIONS[persistFor] ?? null;
+    const broadcast = {
+      id: uid(),
+      message: String(message || '').slice(0, 200),
+      ts: Date.now(),
+      persistFor: durationMs === null ? 'none' : persistFor,
+      expiresAt: durationMs === null ? null : Date.now() + durationMs,
+    };
+
+    clearBroadcastTimer();
+    if (durationMs === null && persistFor !== 'forever') {
+      transientBroadcast = broadcast;
+      state.broadcast = null;
+    } else {
+      transientBroadcast = null;
+      state.broadcast = broadcast;
+      if (broadcast.expiresAt) scheduleBroadcastExpiration(broadcast.expiresAt);
+    }
+    persist();
+    return { ok: true };
+  },
   clearBroadcast() {
+    transientBroadcast = null;
     state.broadcast = null;
+    clearBroadcastTimer();
     persist();
   },
   forceWinner(username) {

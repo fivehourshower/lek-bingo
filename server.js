@@ -116,6 +116,12 @@ function handleMessage(c, msg) {
       broadcast();
       return;
 
+    case 'pollVote':
+      if (!c.username) return;
+      actions.votePrediction(c.username, msg.optionIdx);
+      broadcast();
+      return;
+
     case 'removeBoard':
       if (!c.username) return;
       actions.removeBoard(c.username, msg.boardIdx);
@@ -166,7 +172,9 @@ function handleMessage(c, msg) {
           sendTo(c, { type: 'wordsResult', ...(res || {}) });
           break;
         }
-        case 'broadcast':         actions.broadcast(args[0]); break;
+        case 'setPollOptions':   actions.setPollOptions(args[0]); break;
+        case 'resetPredictions': actions.resetPredictions(); break;
+        case 'broadcast':         actions.broadcast(args[0], args[1]); break;
         case 'clearBroadcast':    actions.clearBroadcast(); break;
         case 'forceWinner':       actions.forceWinner(args[0]); break;
         case 'clearForcedWinners':actions.clearForcedWinners(); break;
