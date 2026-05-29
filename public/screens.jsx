@@ -137,6 +137,18 @@ function BingoPlay({ state, session }) {
   const [expanded, setExpanded] = React.useState(null); // player obj or null
   const [showBingoToast, setShowBingoToast] = React.useState(false);
   const [pendingExpanded, setPendingExpanded] = React.useState(false);
+  const [showQuickGuide, setShowQuickGuide] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!session.username || !me) return;
+    const key = 'bingo:quick-guide:v1';
+    if (!localStorage.getItem(key)) setShowQuickGuide(true);
+  }, [session.username, !!me]);
+
+  const dismissQuickGuide = () => {
+    localStorage.setItem('bingo:quick-guide:v1', '1');
+    setShowQuickGuide(false);
+  };
 
   // celebrate bingo: detect changes in own bingo count
   const bingoCount = me ? me.boards.reduce((sum, b) => sum + detectBingos(b.claimed).length, 0) : 0;
@@ -203,7 +215,7 @@ function BingoPlay({ state, session }) {
                 key={b.id}
                 board={b}
                 isOwn={true}
-                label={me.boards.length > 1 ? `Board ${idx + 1}` : 'Your board'}
+                label={me.boards.length > 1 ? `Board ${idx + 1}` : ''}
                 onSquareClick={(sq) => clickSquare(idx, sq)}
                 canRemove={me.boards.length > 1}
                 onRemove={() => {
@@ -215,11 +227,6 @@ function BingoPlay({ state, session }) {
             ))}
           </div>
 
-          <div style={{ marginTop: 22 }}>
-            <span className="floating-hint">
-              Tap a square to claim · Tap again to unclaim · Host confirms BINGOs
-            </span>
-          </div>
         </div>
 
         <div className="shell-rail">
@@ -257,6 +264,31 @@ function BingoPlay({ state, session }) {
         }}>
           🎉 BINGO! 🎉
         </div>
+      )}
+
+      {showQuickGuide && (
+        <Modal title="Quick guide" onClose={dismissQuickGuide}>
+          <div className="col" style={{ gap: 12 }}>
+            <p className="hint" style={{ margin: 0 }}>
+              Welcome. Here is the fast version to get started.
+            </p>
+            <div>
+              <strong>Board play</strong>
+              <div className="hint" style={{ marginTop: 4 }}>
+                Tap squares to claim or unclaim. BINGOs are verified by host confirmation.
+              </div>
+            </div>
+            <div>
+              <strong>Prediction poll</strong>
+              <div className="hint" style={{ marginTop: 4 }}>
+                Spend tokens to back your winner pick. Token rewards come from host-confirmed bingos and passive drip.
+              </div>
+            </div>
+            <div className="row" style={{ justifyContent: 'flex-end' }}>
+              <button className="btn btn-primary" onClick={dismissQuickGuide}>Got it</button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );
@@ -328,10 +360,6 @@ function PredictionPoll({ state, canVote }) {
 
       {!collapsed && (
         <>
-      <p className="hint" style={{ marginTop: 10 }}>
-        Pick one winner. The bars show the current share of predictions.
-      </p>
-
       {canVote && ownPlayer && (
         <div className="row wrap" style={{ gap: 8, marginTop: 8 }}>
           <span className="pill good">{tokensLeft} token{tokensLeft === 1 ? '' : 's'} left</span>

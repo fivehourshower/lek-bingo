@@ -9,6 +9,8 @@ const POLL_ROYAL_THEMES = [
   { name: 'teal', label: 'Teal', accent: '#14b8a6', accentDark: '#0f766e', accentSoft: 'rgba(20,184,166,.18)', text: '#e9fffd' },
 ];
 
+const BOARD_MAX_WIDTH = 520;
+
 function getPollTheme(index) {
   return POLL_ROYAL_THEMES[index % POLL_ROYAL_THEMES.length];
 }
@@ -93,7 +95,7 @@ function Board({ board, isOwn, label, onSquareClick, onRemove, canRemove }) {
   const lines = detectBingos(board.claimed);
   return (
     <div className="board-col">
-      <div className="board-header" style={{ width: '100%', maxWidth: 560 }}>
+      <div className="board-header" style={{ width: '100%', maxWidth: BOARD_MAX_WIDTH }}>
         <div className="label">{label}</div>
         <div className="row" style={{ gap: 8 }}>
           {lines.length > 0 && (
@@ -104,7 +106,7 @@ function Board({ board, isOwn, label, onSquareClick, onRemove, canRemove }) {
           )}
         </div>
       </div>
-      <div className="board-letters" style={{ width: '100%', maxWidth: 560 }}>
+      <div className="board-letters" style={{ width: '100%', maxWidth: BOARD_MAX_WIDTH }}>
         {['B','I','N','G','O'].map(l => <span key={l}>{l}</span>)}
       </div>
       <div className={'board' + (lines.length ? ' has-bingo' : '')}>
@@ -130,10 +132,10 @@ function ReadOnlyBoard({ board, scale = 1, hideBingo = false }) {
   const lines = hideBingo ? [] : detectBingos(board.claimed);
   return (
     <div className="board-col">
-      <div className="board-letters" style={{ width: '100%', maxWidth: 560 * scale }}>
+      <div className="board-letters" style={{ width: '100%', maxWidth: BOARD_MAX_WIDTH * scale }}>
         {['B','I','N','G','O'].map(l => <span key={l}>{l}</span>)}
       </div>
-      <div className={'board' + (lines.length ? ' has-bingo' : '')} style={{ maxWidth: 560 * scale, cursor: 'default' }}>
+      <div className={'board' + (lines.length ? ' has-bingo' : '')} style={{ maxWidth: BOARD_MAX_WIDTH * scale, cursor: 'default' }}>
         {board.words.map((word, i) => (
           <div
             key={i}
